@@ -76,7 +76,7 @@ public class SmartObjectPanel<E> extends AbstractSmartPanel<E> {
     public void setTarget(E target) {
 	this.target = target;
 	for (SmartObjectFieldData field : FIELDS_MAP.values())
-	    field.setTarget(target);
+	    field.setFieldOwner(target);
     }
 
 
@@ -85,9 +85,9 @@ public class SmartObjectPanel<E> extends AbstractSmartPanel<E> {
 	private static final long serialVersionUID = 6877961412448443847L;
 
 	protected final JTextField TEXT_FIELD;
-	protected final IFieldData FIELD_DATA;
+	protected final FieldData FIELD_DATA;
 
-	public TextFieldActionListener(JTextField textField, IFieldData fieldData) {
+	public TextFieldActionListener(JTextField textField, FieldData fieldData) {
 	    this.TEXT_FIELD = textField;
 	    this.FIELD_DATA = fieldData;
 	}

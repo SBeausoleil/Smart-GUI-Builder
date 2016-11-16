@@ -2,19 +2,20 @@ package com.sb.smartgui;
 
 import java.awt.Frame;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
-import java.util.logging.Logger;
 
 import javax.swing.JPanel;
 
 // TODO add functionality to build panels for constructors and functions
+// TODO test for support of enums
 public class SmartPanelFactory {
 
-    public static final Logger LOG = Logger.getLogger(SmartPanelFactory.class.getName());
-
     protected static final IdentityHashMap<Object, SmartObjectPanel> PROCESSED_OBJECTS = new IdentityHashMap<>();
+    protected static final IdentityHashMap<Method, SmartMethodPanel> PROCESSED_METHODS = new IdentityHashMap<>();
 
     public static StringFormatter defaultFormatter = new TitleStringFormatter();
 
@@ -32,12 +33,46 @@ public class SmartPanelFactory {
 
     /**
      * Class specific factories that will override the objectBuilder of all factories.
-     * Ir is to note that the priority of the check for commonClassSpecificFactories is second to
+     * It is to note that the priority of the check for commonClassSpecificFactories is second to
      * last, right before last resort objectBuilder.
      */
     public static IdentityHashMap<Class, SmartPanelFactory> commonClassSpecificFactories = new IdentityHashMap<>();
 
+    public static IdentityHashMap<Method, SmartPanelFactory> commonMethodSpecificFactories = new IdentityHashMap<>();
+
     public static final SmartPanelFactory DEFAULT_FACTORY = new SmartPanelFactory("Default Factory");
+
+    private static String generateIgnoreNames(Field[] ignore) {
+	if (ignore.length == 0)
+	    return "";
+
+	StringBuilder builder = new StringBuilder(", ignore: ");
+	for (int i = 0; i < ignore.length; i++) {
+	    builder.append(ignore[i].getName());
+	    if (i + 1 < ignore.length)
+		builder.append(", ");
+	}
+	return builder.toString();
+    }
+
+    private static Field[] getFields(Object target, Field... ignore) {
+	ArrayList<Field> fields = new ArrayList<>();
+	Class currentClass = target.getClass();
+	while (currentClass != null) {
+	    for (Field field : currentClass.getDeclaredFields())
+		if (!Modifier.isStatic(field.getModifiers()) && !isIgnored(ignore, field))
+		    fields.add(field);
+	    currentClass = currentClass.getSuperclass();
+	}
+	return fields.toArray(new Field[fields.size()]);
+    }
+
+    private static boolean isIgnored(Field[] ignore, Field field) {
+	for (Field ignoreField : ignore)
+	    if (ignoreField == field)
+		return true;
+	return false;
+    }
 
     /**
      * Formats field names for representation on the UI.
@@ -46,8 +81,11 @@ public class SmartPanelFactory {
     private SmartPanelBuilder numberBuilder;
     private SmartPanelBuilder characterBuilder;
     private SmartPanelBuilder booleanBuilder;
+
     private SmartPanelBuilder stringBuilder;
+
     private SmartPanelBuilder objectBuilder;
+
     private ErrorPanelBuilder errorPanelBuilder;
 
     private String name;
@@ -58,6 +96,13 @@ public class SmartPanelFactory {
      * builders of this factory.
      */
     private IdentityHashMap<Class, SmartPanelFactory> classSpecificFactories;
+
+    /**
+     * Overriding factories for specific method.
+     * These factories have a priority of 1, meaning that they will override any and all specific
+     * builders of this factory.
+     */
+    private IdentityHashMap<Method, SmartPanelFactory> methodSpecificFactories;
 
     public SmartPanelFactory(String name) {
 	this.name = name;
@@ -71,26 +116,13 @@ public class SmartPanelFactory {
 	this.classSpecificFactories = new IdentityHashMap<>();
     }
 
-    private String generateIgnoreNames(Field[] ignore) {
-	if (ignore.length == 0)
-	    return "";
-
-	StringBuilder builder = new StringBuilder(", ignore: ");
-	for (int i = 0; i < ignore.length; i++) {
-	    builder.append(ignore[i].getName());
-	    if (i + 1 < ignore.length)
-		builder.append(", ");
-	}
-	return builder.toString();
-    }
-
-    private SmartObjectPanel generatePanel(Object target, Frame frame, Field... ignore) {
+    protected SmartObjectPanel generateObjectPanel(Object target, Frame frame, Field... ignore) {
 	SmartObjectPanel panel = new SmartObjectPanel(target, this);
 
 	// Check for any overriding class specific factories
 	SmartPanelFactory overridingFactory = classSpecificFactories.get(target.getClass());
 	if (overridingFactory != null)
-	    return overridingFactory.generatePanel(target, frame, ignore);
+	    return overridingFactory.generateObjectPanel(target, frame, ignore);
 
 	// Gather the instance fields
 	Field[] fields = getFields(target, ignore);
@@ -98,32 +130,63 @@ public class SmartPanelFactory {
 	    field.setAccessible(true);
 
 	    JPanel fieldPanel = null;
-	    SmartObjectFieldData fieldData = new SmartObjectFieldData(target, field, null, null);
-	    Class currentFieldType = field.getType();
+	    SmartObjectFieldData fieldData = new SmartObjectFieldData(target, field, null);
+	    Class type = fieldData.getType();
 
 	    // Check for any overriding class specific factories
-	    overridingFactory = classSpecificFactories.get(currentFieldType);
-	    if (overridingFactory != null)
-		fieldPanel = overridingFactory.generatePanel(target, frame);
-	    else if (numberBuilder.supports(currentFieldType))
-		fieldPanel = numberBuilder.build(fieldData, formatter, this, frame);
-	    else if (characterBuilder.supports(currentFieldType))
-		fieldPanel = characterBuilder.build(fieldData, formatter, this, frame);
-	    else if (booleanBuilder.supports(currentFieldType))
-		fieldPanel = booleanBuilder.build(fieldData, formatter, this, frame);
-	    else if (stringBuilder.supports(currentFieldType))
-		fieldPanel = stringBuilder.build(fieldData, formatter, this, frame);
-	    else if (objectBuilder.supports(currentFieldType))
-		fieldPanel = objectBuilder.build(fieldData, formatter, this, frame);
-	    else
-		fieldPanel = errorPanelBuilder.build(fieldData, formatter, this, frame);
+	    overridingFactory = classSpecificFactories.get(type);
+	    if (overridingFactory != null) {
+		fieldPanel = overridingFactory.generateObjectPanel(target, frame);
+	    }
+
+	    fieldPanel = generatePanel(frame, fieldData, type);
 
 	    fieldData.setPanel(fieldPanel);
-	    if (fieldPanel != null)
+	    if (fieldPanel != null) {
 		panel.add(fieldPanel);
+		panel.getFieldsMap().put(fieldData.getField(), fieldData);
+		fieldData.setOwnerContainer(panel);
+	    }
 	}
 
+	// Register the SmartPanel
+	PROCESSED_OBJECTS.put(target, panel);
+
 	return panel;
+    }
+
+    /**
+     * @param frame
+     * @param fieldData
+     * @param type
+     * @return
+     */
+    protected JPanel generatePanel(Frame frame, SmartObjectFieldData fieldData, Class type) {
+	JPanel fieldPanel;
+	if (numberBuilder.supports(type))
+	fieldPanel = numberBuilder.build(fieldData, formatter, this, frame);
+	else if (characterBuilder.supports(type))
+	fieldPanel = characterBuilder.build(fieldData, formatter, this, frame);
+	else if (booleanBuilder.supports(type))
+	fieldPanel = booleanBuilder.build(fieldData, formatter, this, frame);
+	else if (stringBuilder.supports(type))
+	fieldPanel = stringBuilder.build(fieldData, formatter, this, frame);
+	else if (objectBuilder.supports(type))
+	fieldPanel = objectBuilder.build(fieldData, formatter, this, frame);
+	else
+	fieldPanel = errorPanelBuilder.build(fieldData, formatter, this, frame);
+	return fieldPanel;
+    }
+
+    private SmartMethodPanel generateMethodPanel(Object invocationTarget, Method method) {
+	// Check if the method's panel already exists
+	
+	Parameter[] parameters = method.getParameters();
+
+	// Check for any overriding method specific factories
+	SmartMethodPanel
+	
+	return null;
     }
 
     /**
@@ -155,24 +218,11 @@ public class SmartPanelFactory {
 
     /**
      * Returns the errorPanelBuilder.
-     * 
+     *
      * @return the errorPanelBuilder
      */
     public ErrorPanelBuilder getErrorPanelBuilder() {
 	return errorPanelBuilder;
-    }
-
-    private Field[] getFields(Object target, Field... ignore) {
-	ArrayList<Field> fields = new ArrayList<>();
-	Class currentClass = target.getClass();
-	while (currentClass != null) {
-	    //fields.addAll(Arrays.asList(currentClass.getDeclaredFields()));
-	    for (Field field : currentClass.getDeclaredFields())
-		if (!Modifier.isStatic(field.getModifiers()) && !isIgnored(ignore, field))
-		    fields.add(field);
-	    currentClass = currentClass.getSuperclass();
-	}
-	return fields.toArray(new Field[fields.size()]);
     }
 
     /**
@@ -186,7 +236,7 @@ public class SmartPanelFactory {
 
     /**
      * Returns the name.
-     * 
+     *
      * @return the name
      */
     public String getName() {
@@ -211,19 +261,23 @@ public class SmartPanelFactory {
 	return objectBuilder;
     }
 
+    /**
+     * Returns a SmartObjectPanel.
+     * 
+     * @param clazz
+     *            the class of the desired central value of the SmartObjectPanel.
+     * @param frame
+     * @param ignore
+     * @return
+     */
     public SmartObjectPanel getSmartObjectPanel(Class clazz, Frame frame, Field... ignore) {
-	LOG.fine("args: class = " + clazz.getName() + ", frame = " + frame + generateIgnoreNames(ignore));
-	Object target = ClassUtil.instantiate(clazz);
-	SmartObjectPanel panel = generatePanel(target, frame, ignore);
-	PROCESSED_OBJECTS.put(target, panel);
-	return panel;
+	return generateObjectPanel(ClassUtil.instantiate(clazz), frame, ignore);
     }
 
     /**
      * Creates a SmartObjectPanel
-     * Is best used when the field value is null.
-     * Use getSmartObjectPanel(IFieldData, Frame, Field...) instead.
-     * 
+     * Is best used when the Field's value is null but will work nevertheless if it is initialized.
+     *
      * @param field
      * @param fieldOwner
      * @param frame
@@ -231,12 +285,10 @@ public class SmartPanelFactory {
      * @return
      * @throws IllegalArgumentException
      * @throws IllegalAccessException
+     * @see #getSmartObjectPanel(FieldData, Frame, Field...)
      */
-    @Deprecated // May cause issues with IFieldData
     public SmartObjectPanel getSmartObjectPanel(Field field, Object fieldOwner, Frame frame, Field... ignore)
 	    throws IllegalArgumentException, IllegalAccessException {
-	LOG.fine("args: field = " + field.getName() + ", fieldOwner: " + fieldOwner + ", frame = " + frame
-		+ generateIgnoreNames(ignore));
 	Object fieldValue = field.get(fieldOwner);
 	if (fieldValue == null) {
 	    // Instantiate the field
@@ -249,21 +301,30 @@ public class SmartPanelFactory {
     /**
      * Creates a SmartObjectPanel
      * Can handle null value within the FieldData.
-     * 
+     *
      * @param fieldData
      * @param frame
      * @param ignore
      * @return
      */
-    public SmartObjectPanel getSmartObjectPanel(IFieldData fieldData, Frame frame, Field... ignore) {
+    public SmartObjectPanel getSmartObjectPanel(FieldData fieldData, Frame frame, Field... ignore) {
+	// This method does not check for a
 	if (fieldData.getValue() == null)
 	    fieldData.setValue(ClassUtil.instantiate(fieldData.getType()));
 	return getSmartObjectPanel(fieldData.getValue(), frame, ignore);
     }
 
+    /**
+     * Creates a SmartObjectPanel for the specified target object.
+     * If there already exists a SmartObjectPanel for this specific object (identity check), the
+     * pre-existing panel will be sent back instead of a new one.
+     * 
+     * @param target
+     * @param frame
+     * @param ignore
+     * @return
+     */
     public SmartObjectPanel getSmartObjectPanel(Object target, Frame frame, Field... ignore) {
-	LOG.fine("args: target = " + target + ", frame = " + frame + generateIgnoreNames(ignore));
-
 	// NULL argument is not accepted
 	if (target == null)
 	    throw new IllegalArgumentException("The target may not be NULL.");
@@ -273,8 +334,7 @@ public class SmartPanelFactory {
 	if (panel != null) // If so, return the already processed form
 	    return panel;
 
-	panel = generatePanel(target, frame, ignore);
-	PROCESSED_OBJECTS.put(target, panel);
+	panel = generateObjectPanel(target, frame, ignore);
 	return panel;
     }
 
@@ -285,13 +345,6 @@ public class SmartPanelFactory {
      */
     public SmartPanelBuilder getStringBuilder() {
 	return stringBuilder;
-    }
-
-    private boolean isIgnored(Field[] ignore, Field field) {
-	for (Field ignoreField : ignore)
-	    if (ignoreField == field)
-		return true;
-	return false;
     }
 
     /**
@@ -326,7 +379,7 @@ public class SmartPanelFactory {
 
     /**
      * Sets the value of errorPanelBuilder to that of the parameter.
-     * 
+     *
      * @param errorPanelBuilder
      *            the errorPanelBuilder to set
      */
@@ -346,7 +399,7 @@ public class SmartPanelFactory {
 
     /**
      * Sets the value of name to that of the parameter.
-     * 
+     *
      * @param name
      *            the name to set
      */
@@ -382,5 +435,24 @@ public class SmartPanelFactory {
      */
     public void setStringBuilder(SmartPanelBuilder stringBuilder) {
 	this.stringBuilder = stringBuilder;
+    }
+
+    /**
+     * Returns the methodSpecificFactories.
+     * 
+     * @return the methodSpecificFactories
+     */
+    public IdentityHashMap<Method, SmartPanelFactory> getMethodSpecificFactories() {
+	return methodSpecificFactories;
+    }
+
+    /**
+     * Sets the value of methodSpecificFactories to that of the parameter.
+     * 
+     * @param methodSpecificFactories
+     *            the methodSpecificFactories to set
+     */
+    public void setMethodSpecificFactories(IdentityHashMap<Method, SmartPanelFactory> methodSpecificFactories) {
+	this.methodSpecificFactories = methodSpecificFactories;
     }
 }

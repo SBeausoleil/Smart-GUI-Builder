@@ -1,5 +1,6 @@
 package com.sb.smartgui;
 
+import java.awt.Container;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -19,48 +20,57 @@ import javax.swing.JPanel;
  */
 public class SmartObjectFieldData<E, T> implements Serializable, SmartFieldData<E> {
     private static final long serialVersionUID = 8272692292592395946L;
-    
+
     /**
      * The object owning the Field.
      */
-    protected T target;
-    
+    protected T fieldOwner;
+
     /**
      * The Field that is controlled by this FieldData
      */
     protected Field FIELD;
-    
+
     /**
      * An optional setter method to use when modifying the field.
      * May be null.
      */
     protected Method setter;
-    
+
+    /**
+     * The panel that is currently displaying this SmartObjectFieldData.
+     * Does not need to be set, however some functionalities of this class will not be functional if
+     * it is null.
+     */
+    protected JPanel ownerPanel;
+
     /**
      * The panel that represents that field within the UI.
      */
     protected JPanel panel;
-    
+
     /**
-     * Is used in case the target is a non-primitive/non-String Object.
+     * Is used in case the field's value is a non-primitive/non-String Object.
      */
     protected AbstractSmartPanel<T> innerPanel;
+
     /**
      * Wether that field's panel is currently displayed or not.
      */
     protected boolean display;
+
     /**
      * The index of that field's panel within the UI.
      * Used when restoring the display to true so that it goes back to it's original place.
      */
     protected int index;
 
-    public SmartObjectFieldData(T target, Field field, JPanel panel) {
-	this(target, field, panel, null);
+    public SmartObjectFieldData(T fieldOwner, Field field, JPanel panel) {
+	this(fieldOwner, field, panel, null);
     }
 
-    public SmartObjectFieldData(T target, Field field, JPanel panel, Method setter) {
-	this.target = target;
+    public SmartObjectFieldData(T fieldOwner, Field field, JPanel panel, Method setter) {
+	this.fieldOwner = fieldOwner;
 	this.FIELD = field;
 	this.panel = panel;
 	this.setter = setter;
@@ -82,6 +92,7 @@ public class SmartObjectFieldData<E, T> implements Serializable, SmartFieldData<
      *
      * @return the index
      */
+    @Override
     public int getIndex() {
 	return index;
     }
@@ -116,12 +127,12 @@ public class SmartObjectFieldData<E, T> implements Serializable, SmartFieldData<
     }
 
     /**
-     * Returns the target.
+     * Returns the object owning the field.
      *
-     * @return the target
+     * @return the owner of the field
      */
-    public T getTarget() {
-	return target;
+    public T getFieldOwner() {
+	return fieldOwner;
     }
 
     /**
@@ -144,7 +155,7 @@ public class SmartObjectFieldData<E, T> implements Serializable, SmartFieldData<
     public void display(boolean display) {
 	this.display = display;
     }
-    
+
     /**
      * Sets the value of innerPanel to that of the parameter.
      *
@@ -178,25 +189,33 @@ public class SmartObjectFieldData<E, T> implements Serializable, SmartFieldData<
 	this.setter = setter;
     }
 
-    public void setTarget(T target) {
-	this.target = target;
+    /**
+     * Sets the fieldOwner to that of the parameter.
+     * 
+     * @param fieldOwner
+     */
+    public void setFieldOwner(T fieldOwner) {
+	this.fieldOwner = fieldOwner;
 	if (innerPanel != null)
-	    innerPanel.setTarget(target);
+	    innerPanel.setTarget(this.fieldOwner);
     }
 
-    public void update(Object obj) {
+    /**
+     * Updates the current state of the field value.
+     * Will try to set the field's value by reflection or if possible, via a setter method.
+     * 
+     * @param obj
+     *            the new value of the field
+     */
+    public void updateField(Object obj) {
 	try {
 	    if (setter != null)
-		setter.invoke(target, obj);
+		setter.invoke(fieldOwner, obj);
 	    else
-		FIELD.set(target, obj);
+		FIELD.set(fieldOwner, obj);
 	} catch (InvocationTargetException | IllegalAccessException e) {
 	    throw new RuntimeException(e);
 	}
-    }
-
-    public int updateIndex() {
-	return this.index = Components.getComponentIndex(panel);
     }
 
     @Override
@@ -212,7 +231,7 @@ public class SmartObjectFieldData<E, T> implements Serializable, SmartFieldData<
     @Override
     public E getValue() {
 	try {
-	    return (E) FIELD.get(target);
+	    return (E) FIELD.get(fieldOwner);
 	} catch (IllegalArgumentException | IllegalAccessException e) {
 	    throw new RuntimeException(e);
 	}
@@ -220,6 +239,21 @@ public class SmartObjectFieldData<E, T> implements Serializable, SmartFieldData<
 
     @Override
     public void setValue(E value) {
-	update(value);
+	updateField(value);
+    }
+
+    @Override
+    public Container getOwnerContainer() {
+	return ownerPanel;
+    }
+
+    @Override
+    public void setOwnerContainer(JPanel ownerPanel) {
+	this.ownerPanel = ownerPanel;
+    }
+
+    @Override
+    public void setIndex(int index) {
+	this.index = index;
     }
 }

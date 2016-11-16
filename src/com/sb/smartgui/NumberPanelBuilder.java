@@ -41,7 +41,7 @@ public class NumberPanelBuilder implements SmartPanelBuilder {
 	return panel;
     }
 
-    private void numberTextFieldSetting(TextFieldPanel panel, IFieldData fieldData, boolean allowDecimal) {
+    private void numberTextFieldSetting(TextFieldPanel panel, FieldData fieldData, boolean allowDecimal) {
 	// Set displayed field value
 	panel.setText(fieldData.getValue().toString());
 

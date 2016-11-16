@@ -6,7 +6,7 @@ package com.sb.smartgui;
  * @author Samuel Beausoleil
  * @param <E> the type of data that is wrapped by this IFieldData
  */
-public interface IFieldData<E> {
+public interface FieldData<E> {
 
     /**
      * The type of data wrapped.
