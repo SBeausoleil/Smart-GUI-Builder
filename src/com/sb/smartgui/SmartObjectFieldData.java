@@ -42,12 +42,12 @@ public class SmartObjectFieldData<E, T> implements Serializable, SmartFieldData<
      * Does not need to be set, however some functionalities of this class will not be functional if
      * it is null.
      */
-    protected JPanel ownerPanel;
+    protected Container ownerPanel;
 
     /**
      * The panel that represents that field within the UI.
      */
-    protected JPanel panel;
+    protected Container panel;
 
     /**
      * Is used in case the field's value is a non-primitive/non-String Object.
@@ -113,7 +113,7 @@ public class SmartObjectFieldData<E, T> implements Serializable, SmartFieldData<
      * @return the panel
      */
     @Override
-    public JPanel getPanel() {
+    public Container getPanel() {
 	return panel;
     }
 
@@ -174,7 +174,7 @@ public class SmartObjectFieldData<E, T> implements Serializable, SmartFieldData<
      *            the panel to set
      */
     @Override
-    public void setPanel(JPanel panel) {
+    public void setPanel(Container panel) {
 	this.panel = panel;
 	updateIndex();
     }
@@ -248,7 +248,7 @@ public class SmartObjectFieldData<E, T> implements Serializable, SmartFieldData<
     }
 
     @Override
-    public void setOwnerContainer(JPanel ownerPanel) {
+    public void setOwnerContainer(Container ownerPanel) {
 	this.ownerPanel = ownerPanel;
     }
 

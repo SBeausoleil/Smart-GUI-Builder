@@ -2,8 +2,6 @@ package com.sb.smartgui;
 
 import java.awt.Container;
 
-import javax.swing.JPanel;
-
 /**
  * An extension to IFieldData to extend it's capabilities to be used for complex GUI objects within
  * the SmartGUI framework. SmartFieldData objects should not be shared between multiple GUI panels,
@@ -32,21 +30,21 @@ public interface SmartFieldData<E> extends FieldData<E> {
      * @param ownerPanel
      *            the new panel to hold this SmartFieldData.
      */
-    public void setOwnerContainer(JPanel ownerPanel);
+    public void setOwnerContainer(Container ownerPanel);
 
     /**
      * Returns the panel which represents this data as the first layer of display.
      * 
      * @return the panel which represents this data
      */
-    public JPanel getPanel();
+    public Container getPanel();
 
     /**
      * Sets the panel which represents this data as the first layer of display.
      * 
      * @param panel
      */
-    public void setPanel(JPanel panel);
+    public void setPanel(Container panel);
 
     /**
      * Returns the panel which may represent this data as a second layer of display.

@@ -2,21 +2,19 @@ package com.sb.smartgui;
 
 import java.awt.Container;
 
-import javax.swing.JPanel;
-
 public class SimpleSmartFieldData<E> extends SimpleFieldData<E> implements SmartFieldData<E> {
 
     protected Container ownerPanel;
-    protected JPanel panel;
+    protected Container panel;
     protected AbstractSmartPanel<?> innerPanel;
     protected boolean display;
     protected int index;
 
-    public SimpleSmartFieldData(Class<E> type, String name, E value, Container ownerContainer, JPanel panel) {
+    public SimpleSmartFieldData(Class<E> type, String name, E value, Container ownerContainer, Container panel) {
 	this(type, name, value, ownerContainer, panel, null, true);
     }
 
-    public SimpleSmartFieldData(Class<E> type, String name, E value, Container ownerPanel, JPanel panel,
+    public SimpleSmartFieldData(Class<E> type, String name, E value, Container ownerPanel, Container panel,
 	    AbstractSmartPanel<?> innerPanel, boolean display) {
 	super(type, name, value);
 	this.ownerPanel = ownerPanel;
@@ -47,7 +45,7 @@ public class SimpleSmartFieldData<E> extends SimpleFieldData<E> implements Smart
     }
 
     @Override
-    public JPanel getPanel() {
+    public Container getPanel() {
 	return panel;
     }
 
@@ -67,12 +65,12 @@ public class SimpleSmartFieldData<E> extends SimpleFieldData<E> implements Smart
     }
 
     @Override
-    public void setOwnerContainer(JPanel ownerPanel) {
+    public void setOwnerContainer(Container ownerPanel) {
 	this.ownerPanel = ownerPanel;
     }
 
     @Override
-    public void setPanel(JPanel panel) {
+    public void setPanel(Container panel) {
 	this.panel = panel;
     }
 }

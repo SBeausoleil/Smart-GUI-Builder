@@ -1,10 +1,10 @@
 package com.sb.smartgui;
 
+import java.awt.Container;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.util.logging.Logger;
 
-import javax.swing.JPanel;
 import javax.swing.text.PlainDocument;
 
 import com.sb.smartgui.SmartObjectPanel.TextFieldActionListener;
@@ -17,7 +17,7 @@ public class CharacterPanelBuilder implements SmartPanelBuilder {
     public static final Logger LOG = Logger.getLogger(CharacterPanelBuilder.class.getName());
 
     @Override
-    public JPanel build(SmartFieldData fieldData, StringFormatter formatter, SmartPanelFactory factory, Frame frame) {
+    public Container build(SmartFieldData fieldData, StringFormatter formatter, SmartPanelFactory factory, Frame frame) {
 
 	LOG.fine("args: type = " + fieldData.getType().getName() + ", fieldData = " + fieldData + ", formatter = "
 		+ formatter

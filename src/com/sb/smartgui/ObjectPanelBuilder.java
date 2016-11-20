@@ -1,6 +1,7 @@
 package com.sb.smartgui;
 
 import java.awt.Frame;
+import java.awt.Container;
 import java.awt.FlowLayout;
 import java.awt.event.ActionListener;
 import java.lang.reflect.Array;
@@ -42,7 +43,7 @@ public class ObjectPanelBuilder implements SmartPanelBuilder {
      * @return The panel built by this method. Null if the type of the field is not supported.
      */
     @Override
-    public JPanel build(SmartFieldData fieldData, StringFormatter formatter, SmartPanelFactory factory,
+    public Container build(SmartFieldData fieldData, StringFormatter formatter, SmartPanelFactory factory,
 	    Frame frame) {
 
 	LOG.fine("args: fieldData.getType() = " + fieldData.getType().getName() + ", fieldData = " + fieldData

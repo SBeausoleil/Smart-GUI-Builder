@@ -1,10 +1,9 @@
 package com.sb.smartgui;
 
+import java.awt.Container;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.util.logging.Logger;
-
-import javax.swing.JPanel;
 
 import com.sb.smartgui.SmartObjectPanel.TextFieldActionListener;
 
@@ -22,7 +21,7 @@ public class NumberPanelBuilder implements SmartPanelBuilder {
     }
 
     @Override
-    public JPanel build(SmartFieldData fieldData, StringFormatter formatter, SmartPanelFactory factory, Frame frame) {
+    public Container build(SmartFieldData fieldData, StringFormatter formatter, SmartPanelFactory factory, Frame frame) {
 	LOG.fine("args: fieldData.getType() = " + fieldData.getType().getName() + ", fieldData = " + fieldData
 		+ ", formatter = " + formatter
 		+ ", factory = " + factory + ", frame = " + frame);

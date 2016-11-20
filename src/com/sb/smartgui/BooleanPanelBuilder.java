@@ -1,5 +1,6 @@
 package com.sb.smartgui;
 
+import java.awt.Container;
 import java.awt.Frame;
 import java.awt.GridLayout;
 import java.util.logging.Logger;
@@ -15,7 +16,7 @@ public class BooleanPanelBuilder implements SmartPanelBuilder {
     public static final Logger LOG = Logger.getLogger(BooleanPanelBuilder.class.getName());
 
     @Override
-    public JPanel build(SmartFieldData fieldData, StringFormatter formatter, SmartPanelFactory factory, Frame frame) {
+    public Container build(SmartFieldData fieldData, StringFormatter formatter, SmartPanelFactory factory, Frame frame) {
 
 	LOG.fine("args: type = " + fieldData.getType().getName() + ", fieldData = " + fieldData + ", formatter = " + formatter
 		+ ", factory = " + factory + ", frame = " + frame);

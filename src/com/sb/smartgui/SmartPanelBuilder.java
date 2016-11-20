@@ -1,9 +1,8 @@
 package com.sb.smartgui;
 
+import java.awt.Container;
 import java.awt.Frame;
 import java.io.Serializable;
-
-import javax.swing.JPanel;
 
 /**
  * A builder for a panel that will handle a Field within a SmartObjectPanel. This class is mostly
@@ -33,7 +32,7 @@ public interface SmartPanelBuilder extends Serializable {
      *            all.
      * @return The panel built by this method. Null if the type of the field is not supported.
      */
-    public JPanel build(SmartFieldData fieldData, StringFormatter formatter, SmartPanelFactory factory,
+    public Container build(SmartFieldData fieldData, StringFormatter formatter, SmartPanelFactory factory,
 	    Frame frame);
 
     /**
