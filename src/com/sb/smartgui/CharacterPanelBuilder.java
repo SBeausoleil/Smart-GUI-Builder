@@ -18,14 +18,10 @@ public class CharacterPanelBuilder implements SmartPanelBuilder {
 
     @Override
     public Container build(SmartFieldData fieldData, StringFormatter formatter, SmartPanelFactory factory, Frame frame) {
-
-	LOG.fine("args: type = " + fieldData.getType().getName() + ", fieldData = " + fieldData + ", formatter = "
-		+ formatter
-		+ ", factory = " + factory + ", frame = " + frame);
-
+	TextFieldPanel textPanel = null;
 	if (supports(fieldData.getType())) {
 	    // Make a text field that accepts only one character
-	    TextFieldPanel textPanel = new TextFieldPanel(formatter.format(fieldData.getName()));
+	    textPanel = new TextFieldPanel(formatter.format(fieldData.getName()));
 
 	    // Accept only 1 character
 	    textPanel.getField().setColumns(1);
@@ -51,7 +47,6 @@ public class CharacterPanelBuilder implements SmartPanelBuilder {
 		}
 	    };
 	    textPanel.getField().addActionListener(listener);
-	    return textPanel;
 	}
 	return null;
     }

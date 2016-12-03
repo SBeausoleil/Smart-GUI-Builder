@@ -34,7 +34,7 @@ public class SmartMethodPanel<E, T> extends AbstractSmartPanel<E> {
     /**
      * A map to hold the parameters and their adjoining metadatas.
      */
-    private final IdentityHashMap<Parameter, SmartFieldData> PARAMETERS;
+    private final IdentityHashMap<Parameter, SmartFieldData> PARAMETERS; // FIXME Trace: It seems like the values are not updated automatically
 
     /**
      * The object on which to invoke the function.
@@ -42,7 +42,7 @@ public class SmartMethodPanel<E, T> extends AbstractSmartPanel<E> {
     private T methodInvocationTarget;
 
     private JButton invokeButton;
-    private MethodListener buttonListener = new MethodListener();
+    private MethodListener buttonListener;
 
     /**
      * Constructs a SmartMethodPanel.
@@ -55,6 +55,7 @@ public class SmartMethodPanel<E, T> extends AbstractSmartPanel<E> {
 	this.METHOD = method;
 	this.methodInvocationTarget = methodInvocationTarget;
 	PARAMETERS = new IdentityHashMap<>();
+	buttonListener = new MethodListener();
     }
 
     /**
@@ -107,7 +108,7 @@ public class SmartMethodPanel<E, T> extends AbstractSmartPanel<E> {
      * 
      * @return the parameters
      */
-    public IdentityHashMap<Parameter, SmartFieldData> getPARAMETERS() {
+    public IdentityHashMap<Parameter, SmartFieldData> getParameters() {
 	return PARAMETERS;
     }
 
@@ -116,10 +117,12 @@ public class SmartMethodPanel<E, T> extends AbstractSmartPanel<E> {
      * 
      * @see AbstractSmartPanel#getTarget()
      */
+    // FIXME apparently not all the arguments are sent to the invoke method
     @Override
     public E getTarget() {
 	try {
-	    return (E) METHOD.invoke(methodInvocationTarget, getAllParameters());
+	    Object[] parameters = getAllParameters();
+	    return (E) METHOD.invoke(methodInvocationTarget, parameters);
 	} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 	    throw new RuntimeException(e);
 	}
@@ -172,7 +175,7 @@ public class SmartMethodPanel<E, T> extends AbstractSmartPanel<E> {
      */
     private class MethodListener implements ActionListener {
 
-	LinkedList<MethodInvocationListener> listeners;
+	LinkedList<MethodInvocationListener> listeners = new LinkedList<>();
 
 	@Override
 	public void actionPerformed(ActionEvent e) {

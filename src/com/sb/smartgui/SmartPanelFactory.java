@@ -103,6 +103,7 @@ public class SmartPanelFactory {
 	this.objectBuilder = defaultObjectBuilder;
 	this.errorPanelBuilder = defaultErrorBuilder;
 	this.classSpecificFactories = new IdentityHashMap<>();
+	this.methodSpecificFactories = new IdentityHashMap<>();
     }
 
     /**
@@ -197,7 +198,7 @@ public class SmartPanelFactory {
      * @return
      */
     // TESTME
-    protected SmartMethodPanel generateMethodPanel(Object invocationTarget, Method method, Frame frame, MethodInvocationListener... invocationListeners) {
+    protected SmartMethodPanel generateMethodPanel(Object invocationTarget, Method method, Frame frame) {
 	// Check if there is any method specific factory
 	SmartPanelFactory overridingFactory = methodSpecificFactories.get(method);
 	if (overridingFactory != null && this != overridingFactory)
@@ -224,6 +225,7 @@ public class SmartPanelFactory {
 
 	    if (paramPanel != null) {
 		fieldData.setPanel(paramPanel);
+		smartPanel.getParameters().put(param, fieldData);
 		smartPanel.add(paramPanel);
 	    }
 	}
@@ -231,9 +233,7 @@ public class SmartPanelFactory {
 	// Add a button to run the method
 	JButton runButton = new JButton("Run");
 	smartPanel.setInvokeButton(runButton);
-	// Add the listeners to the button
-	for (MethodInvocationListener listener : invocationListeners)
-	    smartPanel.addMethodInvocationListener(listener);
+	smartPanel.add(runButton);
 	return smartPanel;
     }
 
@@ -248,7 +248,11 @@ public class SmartPanelFactory {
      *            the frame that will receive tbe generated SmartMethodPanel
      * @return a new SmartMethodPanel
      */
-    public SmartMethodPanel getMethodPanel(Object invocationTarget, Method method, Frame frame) {
+    public SmartMethodPanel getSmartMethodPanel(Object invocationTarget, Method method, Frame frame) {
+	if (method == null)
+	    throw new IllegalArgumentException("The method may not be null");
+	if (invocationTarget == null)
+	    throw new IllegalArgumentException("The invocation target may not be null");
 	return generateMethodPanel(invocationTarget, method, frame);
     }
 

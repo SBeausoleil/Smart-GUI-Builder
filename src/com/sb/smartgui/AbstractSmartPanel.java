@@ -10,7 +10,7 @@ import javax.swing.JPanel;
  *
  * @param <E> the type of data that is the end goal product of this SmartDataPanel
  */
-public abstract class AbstractSmartPanel<E> extends JPanel {
+public abstract class AbstractSmartPanel<E> extends JPanel { // TODO For v2.0: Remove the JPanel extension nad make it framework independent.
 
     private static final long serialVersionUID = 2813309144850041790L;
     

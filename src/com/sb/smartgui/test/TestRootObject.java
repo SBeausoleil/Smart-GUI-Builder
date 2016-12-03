@@ -10,10 +10,10 @@ public class TestRootObject {
     private Integer integerField;
     private Character characterField;
     private Boolean booleanField;
-    
+
     // Test round 2: complex objects
     private TestChildrenObject child;
-    
+
     // Test round 3: null objects
     private TestChildrenObject nullChild = null;
 
@@ -164,21 +164,33 @@ public class TestRootObject {
 
     /**
      * Returns the child.
+     * 
      * @return the child
      */
     public TestChildrenObject getChild() {
-        return child;
+	return child;
+    }
+
+    // Is used to test the SmartMethodPanelMain
+    public String testMethod(String message) {
+	System.out.println("Within the method's object");
+	System.out.println("Parameter: " + message);
+	return message;
     }
 
     /**
      * Sets the value of child to that of the parameter.
-     * @param child the child to set
+     * 
+     * @param child
+     *            the child to set
      */
     public void setChild(TestChildrenObject child) {
-        this.child = child;
+	this.child = child;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see java.lang.Object#toString()
      */
     @Override
