@@ -2,6 +2,7 @@ package com.sb.smartgui;
 
 import java.awt.Container;
 import java.awt.Frame;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -11,7 +12,7 @@ import java.util.IdentityHashMap;
 
 import javax.swing.JButton;
 
-// TODO add functionality to build panels for constructors and functions
+// TODO add functionality to build panels for constructors
 // TODO test for support of enums
 public class SmartPanelFactory {
 
@@ -87,6 +88,13 @@ public class SmartPanelFactory {
     protected IdentityHashMap<Method, SmartPanelFactory> methodSpecificFactories;
 
     /**
+     * Overriding factories for specific constructor.
+     * These factories have a priority of 1, meaning that they will override any and all specific
+     * builders of this factory.
+     */
+    protected IdentityHashMap<Constructor, SmartPanelFactory> constructorSpecificFactories;
+
+    /**
      * Creates a new SmartPanelFactory.
      * The builders used by a new SmartPanelFactory are the default ones.
      * 
@@ -104,6 +112,48 @@ public class SmartPanelFactory {
 	this.errorPanelBuilder = defaultErrorBuilder;
 	this.classSpecificFactories = new IdentityHashMap<>();
 	this.methodSpecificFactories = new IdentityHashMap<>();
+	this.constructorSpecificFactories = new IdentityHashMap<>();
+    }
+
+    /**
+     * Returns a SmartConstructorPanel for the supplied constructor.
+     * A list of names needs to be given if there is more than zero parameters. This is because for
+     * some unknown reasons Constructor objects do not store the name of their parameters like
+     * Methods do.
+     * 
+     * @param constructor
+     * @param paramNames
+     * @return
+     */
+    public SmartConstructorPanel getConstructorPanel(Constructor constructor, String... paramNames) {
+	if (constructor == null)
+	    throw new IllegalArgumentException("Constructor may not be null.");
+	// If there is not enough names for each parameters, throw an exception
+	if (constructor.getParameterCount() != paramNames.length)
+	    throw new IllegalArgumentException(
+		    "The number of supplied parameter names does not match the actual number of parameter of the constructor ("
+			    + paramNames.length + "names supplied, " + constructor.getParameterCount() + " required)");
+	return generateConstructorPanel(constructor, paramNames);
+    }
+
+    protected SmartConstructorPanel generateConstructorPanel(Constructor constructor, String... paramNames) {
+	// Check if there is any overriding factory
+	SmartPanelFactory overridingFactory = constructorSpecificFactories.get(constructor);
+	if (overridingFactory != null && this != overridingFactory)
+	    return overridingFactory.generateConstructorPanel(constructor, paramNames);
+
+	// Get the parameter types
+	Class[] paramTypes = constructor.getParameterTypes();
+
+	// Generate individual parameter panels
+	SmartConstructorPanel smartPanel = new SmartConstructorPanel<>(constructor);
+	Container paramPanel;
+
+	for (int i = 0; i < paramTypes.length; i++) {
+
+	}
+
+	return smartPanel;
     }
 
     /**
@@ -197,7 +247,6 @@ public class SmartPanelFactory {
      * @param method
      * @return
      */
-    // TESTME
     protected SmartMethodPanel generateMethodPanel(Object invocationTarget, Method method, Frame frame) {
 	// Check if there is any method specific factory
 	SmartPanelFactory overridingFactory = methodSpecificFactories.get(method);
@@ -209,6 +258,16 @@ public class SmartPanelFactory {
 
 	// Generate individual parameter panels
 	SmartMethodPanel smartPanel = new SmartMethodPanel(method, invocationTarget);
+	generateExecutablePanel(frame, parameters, smartPanel);
+	return smartPanel;
+    }
+
+    /**
+     * @param frame
+     * @param parameters
+     * @param smartPanel
+     */
+    protected void generateExecutablePanel(Frame frame, Parameter[] parameters, ExecutablePanel smartPanel) {
 	Container paramPanel;
 	Class<?> type;
 	for (Parameter param : parameters) {
@@ -217,7 +276,7 @@ public class SmartPanelFactory {
 	    SimpleSmartFieldData fieldData = new SimpleSmartFieldData(type, name, null, smartPanel, paramPanel);
 
 	    // Check for overriding factory
-	    overridingFactory = classSpecificFactories.get(type);
+	    SmartPanelFactory overridingFactory = classSpecificFactories.get(type);
 	    if (overridingFactory != null)
 		paramPanel = overridingFactory.getSmartObjectPanel(param.getType(), frame);
 	    else
@@ -234,7 +293,6 @@ public class SmartPanelFactory {
 	JButton runButton = new JButton("Run");
 	smartPanel.setInvokeButton(runButton);
 	smartPanel.add(runButton);
-	return smartPanel;
     }
 
     /**
