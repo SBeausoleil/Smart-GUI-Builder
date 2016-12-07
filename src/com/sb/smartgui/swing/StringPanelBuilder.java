@@ -1,10 +1,14 @@
-package com.sb.smartgui;
+package com.sb.smartgui.swing;
 
 import java.awt.Container;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
-import com.sb.smartgui.SmartObjectPanel.TextFieldActionListener;
+import com.sb.smartgui.SmartFieldData;
+import com.sb.smartgui.SmartPanelBuilder;
+import com.sb.smartgui.SmartPanelFactory;
+import com.sb.smartgui.StringFormatter;
 
 public class StringPanelBuilder implements SmartPanelBuilder {
 
@@ -13,21 +17,17 @@ public class StringPanelBuilder implements SmartPanelBuilder {
     @Override
     public Container build(SmartFieldData fieldData, StringFormatter formatter, SmartPanelFactory factory, Frame frame) {
 	if (supports(fieldData.getType())) {
-	    TextFieldPanel textPanel = new TextFieldPanel(formatter.format(fieldData.getName()));
+	    final TextFieldPanel TEXT_PANEL = new TextFieldPanel(formatter.format(fieldData.getName()));
 	    // Make and add listener
-	    TextFieldActionListener listener = new TextFieldActionListener(textPanel.getField(),
-		    fieldData) {
-		private static final long serialVersionUID = -3729683853391211653L;
-
+	    ActionListener listener = new ActionListener() {
 		@Override
 		public void actionPerformed(ActionEvent e) {
-		    System.out.println("text event fired");
-		    fieldData.setValue(TEXT_FIELD.getText());
+		    fieldData.setValue(TEXT_PANEL.getField().getText());
 		}
 	    };
-	    textPanel.setText((String) fieldData.getValue());
-	    textPanel.getField().addActionListener(listener);
-	    return textPanel;
+	    TEXT_PANEL.setText((String) fieldData.getValue());
+	    TEXT_PANEL.getField().addActionListener(listener);
+	    return TEXT_PANEL;
 	}
 	return null;
     }

@@ -172,10 +172,10 @@ public class TestRootObject {
     }
 
     // Is used to test the SmartMethodPanelMain
-    public String testMethod(String message) {
+    public String testMethod(String message, int number) {
 	System.out.println("Within the method's object");
-	System.out.println("Parameter: " + message);
-	return message;
+	System.out.println("Parameters: " + message + ", " + number);
+	return message.concat(Integer.toString(number));
     }
 
     /**

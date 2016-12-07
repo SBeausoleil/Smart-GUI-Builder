@@ -2,8 +2,6 @@ package com.sb.smartgui;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
-import java.util.IdentityHashMap;
 
 /**
  * A SmartPanel with the execution of a method as it's goal.
@@ -82,15 +80,5 @@ public class SmartMethodPanel<E, T> extends ExecutablePanel<E> {
      */
     public void setMethodInvocationTarget(T methodInvocationTarget) {
 	this.methodInvocationTarget = methodInvocationTarget;
-    }
-
-
-    /**
-     * Returns the parameters.
-     * 
-     * @return the parameters
-     */
-    public IdentityHashMap<Parameter, SmartFieldData> getParameters() {
-	return PARAMETERS;
     }
 }

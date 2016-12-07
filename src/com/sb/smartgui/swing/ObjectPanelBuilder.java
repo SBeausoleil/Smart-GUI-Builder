@@ -1,4 +1,4 @@
-package com.sb.smartgui;
+package com.sb.smartgui.swing;
 
 import java.awt.Frame;
 import java.awt.Container;
@@ -13,6 +13,13 @@ import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+
+import com.sb.smartgui.ClassUtil;
+import com.sb.smartgui.SmartFieldData;
+import com.sb.smartgui.SmartObjectPanel;
+import com.sb.smartgui.SmartPanelBuilder;
+import com.sb.smartgui.SmartPanelFactory;
+import com.sb.smartgui.StringFormatter;
 
 // FIXME
 public class ObjectPanelBuilder implements SmartPanelBuilder {
@@ -69,7 +76,7 @@ public class ObjectPanelBuilder implements SmartPanelBuilder {
 	return panel;
     }
 
-    private void openRecursive(SmartFieldData fieldData, String name, Frame ownerFrame) {
+    private static void openRecursive(SmartFieldData fieldData, String name, Frame ownerFrame) {
 	JDialog dialog = new JDialog(ownerFrame, name);
 	dialog.add(fieldData.getInnerPanel());
 	dialog.pack();
@@ -78,7 +85,6 @@ public class ObjectPanelBuilder implements SmartPanelBuilder {
 
     @Override
     public boolean supports(Class<?> type) {
-	// IMPROVE Add exceptions that are best handled by other builders
 	return !type.isPrimitive() && !ClassUtil.instanceOf(type, Collection.class)
 		&& !ClassUtil.instanceOf(type, Array.class)
 		&& !ClassUtil.instanceOf(type, Map.class); // Should support anything, but does not yet. Unsupported types listed over.

@@ -1,12 +1,8 @@
 package com.sb.smartgui;
 
-import java.awt.event.ActionListener;
-import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.LinkedHashMap;
 import java.util.logging.Logger;
-
-import javax.swing.JTextField;
 
 public class SmartObjectPanel<E> extends AbstractSmartPanel<E> {
 
@@ -78,22 +74,7 @@ public class SmartObjectPanel<E> extends AbstractSmartPanel<E> {
 	for (SmartObjectFieldData field : FIELDS_MAP.values())
 	    field.setFieldOwner(target);
     }
-
-
-    protected static abstract class TextFieldActionListener implements ActionListener, Serializable { // IMPROVE seems archaic. See if any replacement and more elegant way exist
-
-	private static final long serialVersionUID = 6877961412448443847L;
-
-	protected final JTextField TEXT_FIELD;
-	protected final FieldData FIELD_DATA;
-
-	public TextFieldActionListener(JTextField textField, FieldData fieldData) {
-	    this.TEXT_FIELD = textField;
-	    this.FIELD_DATA = fieldData;
-	}
-
-    }
-
+    
     @Override
     public SmartFieldData[] getFields() {
 	return FIELDS_MAP.values().toArray(new SmartFieldData[FIELDS_MAP.size()]);

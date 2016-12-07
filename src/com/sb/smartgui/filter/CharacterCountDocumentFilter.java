@@ -26,7 +26,6 @@ public class CharacterCountDocumentFilter extends LoggingDocumentFilter {
     }
 
     // TODO test
-    // FIXME EXPLOIT when a "copy/paste" is done, more than the allowed char count can be inserted
     @Override
     public void replace(FilterBypass fb, int offset, int length, String text,
 	    AttributeSet attrs) throws BadLocationException {

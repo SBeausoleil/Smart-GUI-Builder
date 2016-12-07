@@ -11,7 +11,7 @@ import java.util.EventListener;
  * @see SmartMethodPanel
  */
 @FunctionalInterface
-public interface MethodInvocationListener extends EventListener {
+public interface ExecutionListener extends EventListener {
 
     /**
      * Invoked when the tied-to method is invoked.

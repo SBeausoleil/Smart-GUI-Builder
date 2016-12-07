@@ -3,7 +3,7 @@ package com.sb.smartgui;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.lang.reflect.Parameter;
-import java.util.IdentityHashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 
 import javax.swing.JButton;
@@ -21,8 +21,11 @@ public abstract class ExecutablePanel<E> extends AbstractSmartPanel<E> {
 
     /**
      * A map to hold the parameters and their adjoining metadatas.
+     * It is critical to use a map which retains insertion order and to insert parameter key/pair in
+     * the correct order. The correct order of insertion is the order of parameters within the
+     * associated method or constructor's signature.
      */
-    protected final IdentityHashMap<Parameter, SmartFieldData> PARAMETERS;
+    protected final LinkedHashMap<Parameter, SmartFieldData> PARAMETERS;
 
     protected JButton invokeButton;
     protected MethodListener buttonListener;
@@ -36,7 +39,7 @@ public abstract class ExecutablePanel<E> extends AbstractSmartPanel<E> {
      */
     protected ExecutablePanel() {
 	buttonListener = new MethodListener();
-	PARAMETERS = new IdentityHashMap<>();
+	PARAMETERS = new LinkedHashMap<>();
     }
 
     /**
@@ -44,7 +47,7 @@ public abstract class ExecutablePanel<E> extends AbstractSmartPanel<E> {
      * 
      * @param listener
      */
-    public void addMethodInvocationListener(MethodInvocationListener listener) {
+    public void addExecutionListener(ExecutionListener listener) {
 	buttonListener.listeners.add(listener);
     }
 
@@ -98,6 +101,15 @@ public abstract class ExecutablePanel<E> extends AbstractSmartPanel<E> {
     public void setTarget(E target) {}
 
     /**
+     * Returns the parameters.
+     * 
+     * @return the parameters
+     */
+    public LinkedHashMap<Parameter, SmartFieldData> getParameters() {
+	return PARAMETERS;
+    }
+
+    /**
      * The listener on the button that calls the method.
      * After calling the method, it passes along the method's returned value to all of it's
      * registered sub-listeners.
@@ -106,13 +118,13 @@ public abstract class ExecutablePanel<E> extends AbstractSmartPanel<E> {
      */
     private class MethodListener implements ActionListener {
 
-	private LinkedList<MethodInvocationListener> listeners = new LinkedList<>();
+	private LinkedList<ExecutionListener> listeners = new LinkedList<>();
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
 	    Object result = getTarget();
 
-	    for (MethodInvocationListener listener : listeners)
+	    for (ExecutionListener listener : listeners)
 		listener.methodInvoked(result);
 	}
     }

@@ -156,8 +156,7 @@ public final class ClassUtil {
 	    int nPrimsB = countPrimitiveParameters(b);
 	    float primsToParamsA = calculateRatio(nPrimsA, nParamsA);
 	    float primsToParamsB = calculateRatio(nPrimsB, nParamsB);
-
-	    // IMPROVE add some way to prefer means that have the least arguments in the ratio selection
+	    
 	    // IF there is a significant ratio favor the ratio over of the number of parameters for comparison
 	    if (primsToParamsA >= primsToParamsRatio || primsToParamsB >= primsToParamsRatio) {
 		// Favor highest ratio

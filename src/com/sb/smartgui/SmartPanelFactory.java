@@ -12,7 +12,13 @@ import java.util.IdentityHashMap;
 
 import javax.swing.JButton;
 
-// TODO add functionality to build panels for constructors
+import com.sb.smartgui.swing.BooleanPanelBuilder;
+import com.sb.smartgui.swing.CharacterPanelBuilder;
+import com.sb.smartgui.swing.ConcreteErrorPanelBuilder;
+import com.sb.smartgui.swing.NumberPanelBuilder;
+import com.sb.smartgui.swing.ObjectPanelBuilder;
+import com.sb.smartgui.swing.StringPanelBuilder;
+
 // TODO test for support of enums
 public class SmartPanelFactory {
 
@@ -23,7 +29,7 @@ public class SmartPanelFactory {
     protected static final IdentityHashMap<Object, SmartObjectPanel> PROCESSED_OBJECTS = new IdentityHashMap<>(); // OPTIMIZE test if IdentityHashMap is good in cases where 
 
     public static StringFormatter defaultFormatter = new TitleStringFormatter();
-    public static SmartPanelBuilder defaultNumberBuilder = new NumberPanelBuilder(true);
+    public static SmartPanelBuilder defaultNumberBuilder = new NumberPanelBuilder(0);
     public static SmartPanelBuilder defaultCharacterBuilder = new CharacterPanelBuilder();
     public static SmartPanelBuilder defaultBooleanBuilder = new BooleanPanelBuilder();
     public static SmartPanelBuilder defaultStringBuilder = new StringPanelBuilder();
@@ -115,44 +121,78 @@ public class SmartPanelFactory {
 	this.constructorSpecificFactories = new IdentityHashMap<>();
     }
 
-    /**
-     * Returns a SmartConstructorPanel for the supplied constructor.
-     * A list of names needs to be given if there is more than zero parameters. This is because for
-     * some unknown reasons Constructor objects do not store the name of their parameters like
-     * Methods do.
-     * 
-     * @param constructor
-     * @param paramNames
-     * @return
-     */
-    public SmartConstructorPanel getConstructorPanel(Constructor constructor, String... paramNames) {
-	if (constructor == null)
-	    throw new IllegalArgumentException("Constructor may not be null.");
-	// If there is not enough names for each parameters, throw an exception
-	if (constructor.getParameterCount() != paramNames.length)
-	    throw new IllegalArgumentException(
-		    "The number of supplied parameter names does not match the actual number of parameter of the constructor ("
-			    + paramNames.length + "names supplied, " + constructor.getParameterCount() + " required)");
-	return generateConstructorPanel(constructor, paramNames);
-    }
-
-    protected SmartConstructorPanel generateConstructorPanel(Constructor constructor, String... paramNames) {
+    protected SmartConstructorPanel generateConstructorPanel(Constructor constructor, Frame frame, String[] names) {
 	// Check if there is any overriding factory
 	SmartPanelFactory overridingFactory = constructorSpecificFactories.get(constructor);
 	if (overridingFactory != null && this != overridingFactory)
-	    return overridingFactory.generateConstructorPanel(constructor, paramNames);
-
-	// Get the parameter types
-	Class[] paramTypes = constructor.getParameterTypes();
+	    return overridingFactory.generateConstructorPanel(constructor, frame, names);
 
 	// Generate individual parameter panels
 	SmartConstructorPanel smartPanel = new SmartConstructorPanel<>(constructor);
+	generateExecutablePanel(frame, constructor.getParameters(), smartPanel, names);
+
+	return smartPanel;
+    }
+
+    /**
+     * Completes an ExecutablePanel passed in argument.
+     * 
+     * @param frame
+     * @param parameters
+     * @param smartPanel
+     *            the ExecutablePanel to complete
+     */
+    protected void generateExecutablePanel(Frame frame, Parameter[] parameters, ExecutablePanel smartPanel,
+	    String[] names) {
 	Container paramPanel;
+	Class<?> type;
+	for (int i = 0; i < parameters.length; i++) {
+	    paramPanel = null;
+	    type = parameters[i].getType();
+	    SimpleSmartFieldData fieldData = new SimpleSmartFieldData(type,
+		    (i < names.length ? names[i] : parameters[i].getName()), null, smartPanel,
+		    paramPanel);
 
-	for (int i = 0; i < paramTypes.length; i++) {
+	    // Give a basic value to the fieldData (doing otherwise will usually result in a crash from one of the builders)
+	    fieldData.setValue(ClassUtil.instantiate(type));
 
+	    // Check for overriding factory
+	    SmartPanelFactory overridingFactory = classSpecificFactories.get(type);
+	    if (overridingFactory != null)
+		paramPanel = overridingFactory.getSmartObjectPanel(parameters[i].getType(), frame);
+	    else
+		paramPanel = generatePanel(frame, fieldData, type);
+
+	    if (paramPanel != null) {
+		fieldData.setPanel(paramPanel);
+		smartPanel.getParameters().put(parameters[i], fieldData);
+		smartPanel.add(paramPanel);
+	    }
 	}
 
+	// Add a button to run the method
+	JButton runButton = new JButton("Run");
+	smartPanel.setInvokeButton(runButton);
+	smartPanel.add(runButton);
+    }
+
+    /**
+     * Generates a SmartMethodPanel.
+     * 
+     * @param invocationTarget
+     * @param method
+     * @return
+     */
+    protected SmartMethodPanel generateMethodPanel(Object invocationTarget, Method method, Frame frame,
+	    String[] names) {
+	// Check if there is any method specific factory
+	SmartPanelFactory overridingFactory = methodSpecificFactories.get(method);
+	if (overridingFactory != null && this != overridingFactory)
+	    return overridingFactory.generateMethodPanel(invocationTarget, method, frame, names);
+
+	// Generate individual parameter panels
+	SmartMethodPanel smartPanel = new SmartMethodPanel(method, invocationTarget);
+	generateExecutablePanel(frame, method.getParameters(), smartPanel, names);
 	return smartPanel;
     }
 
@@ -241,80 +281,6 @@ public class SmartPanelFactory {
     }
 
     /**
-     * Generates a SmartMethodPanel.
-     * 
-     * @param invocationTarget
-     * @param method
-     * @return
-     */
-    protected SmartMethodPanel generateMethodPanel(Object invocationTarget, Method method, Frame frame) {
-	// Check if there is any method specific factory
-	SmartPanelFactory overridingFactory = methodSpecificFactories.get(method);
-	if (overridingFactory != null && this != overridingFactory)
-	    return overridingFactory.generateMethodPanel(invocationTarget, method, frame);
-
-	// Get the parameters
-	Parameter[] parameters = method.getParameters();
-
-	// Generate individual parameter panels
-	SmartMethodPanel smartPanel = new SmartMethodPanel(method, invocationTarget);
-	generateExecutablePanel(frame, parameters, smartPanel);
-	return smartPanel;
-    }
-
-    /**
-     * @param frame
-     * @param parameters
-     * @param smartPanel
-     */
-    protected void generateExecutablePanel(Frame frame, Parameter[] parameters, ExecutablePanel smartPanel) {
-	Container paramPanel;
-	Class<?> type;
-	for (Parameter param : parameters) {
-	    paramPanel = null;
-	    type = param.getType();
-	    SimpleSmartFieldData fieldData = new SimpleSmartFieldData(type, name, null, smartPanel, paramPanel);
-
-	    // Check for overriding factory
-	    SmartPanelFactory overridingFactory = classSpecificFactories.get(type);
-	    if (overridingFactory != null)
-		paramPanel = overridingFactory.getSmartObjectPanel(param.getType(), frame);
-	    else
-		paramPanel = generatePanel(frame, fieldData, type);
-
-	    if (paramPanel != null) {
-		fieldData.setPanel(paramPanel);
-		smartPanel.getParameters().put(param, fieldData);
-		smartPanel.add(paramPanel);
-	    }
-	}
-
-	// Add a button to run the method
-	JButton runButton = new JButton("Run");
-	smartPanel.setInvokeButton(runButton);
-	smartPanel.add(runButton);
-    }
-
-    /**
-     * Creates a SmartMethodPanel and returns it.
-     * 
-     * @param invocationTarget
-     *            the object on which the method shall be invoked
-     * @param method
-     *            the method core to the SmartMethodPanel
-     * @param frame
-     *            the frame that will receive tbe generated SmartMethodPanel
-     * @return a new SmartMethodPanel
-     */
-    public SmartMethodPanel getSmartMethodPanel(Object invocationTarget, Method method, Frame frame) {
-	if (method == null)
-	    throw new IllegalArgumentException("The method may not be null");
-	if (invocationTarget == null)
-	    throw new IllegalArgumentException("The invocation target may not be null");
-	return generateMethodPanel(invocationTarget, method, frame);
-    }
-
-    /**
      * Returns the booleanBuilder.
      *
      * @return the booleanBuilder
@@ -342,6 +308,24 @@ public class SmartPanelFactory {
     }
 
     /**
+     * Returns a SmartConstructorPanel for the supplied constructor.
+     * It is to note that depending upon the compiler's arguments, the name of each parameters may
+     * be erased, so the ability to provide names if desired is provided.
+     * 
+     * @param constructor
+     * @param frame
+     * @param names
+     *            the name of each parameters. Is optional.
+     * @return
+     */
+    public SmartConstructorPanel getSmartConstructorPanel(Constructor constructor, Frame frame, String... names) {
+	if (constructor == null)
+	    throw new IllegalArgumentException("Constructor may not be null.");
+
+	return generateConstructorPanel(constructor, frame, names);
+    }
+
+    /**
      * Returns the errorPanelBuilder.
      *
      * @return the errorPanelBuilder
@@ -357,6 +341,15 @@ public class SmartPanelFactory {
      */
     public StringFormatter getFormatter() {
 	return formatter;
+    }
+
+    /**
+     * Returns the methodSpecificFactories.
+     * 
+     * @return the methodSpecificFactories
+     */
+    public IdentityHashMap<Method, SmartPanelFactory> getMethodSpecificFactories() {
+	return methodSpecificFactories;
     }
 
     /**
@@ -384,6 +377,28 @@ public class SmartPanelFactory {
      */
     public SmartPanelBuilder getObjectBuilder() {
 	return objectBuilder;
+    }
+
+    /**
+     * Creates a SmartMethodPanel and returns it.
+     * It is to note that depending upon the compiler's arguments, the name of each parameters may
+     * be erased, so the ability to provide names if desired is provided.
+     * 
+     * @param invocationTarget
+     *            the object on which the method shall be invoked
+     * @param method
+     *            the method core to the SmartMethodPanel
+     * @param frame
+     *            the frame that will receive tbe generated SmartMethodPanel
+     * @param names
+     * @return a new SmartMethodPanel
+     */
+    public SmartMethodPanel getSmartMethodPanel(Object invocationTarget, Method method, Frame frame, String... names) {
+	if (method == null)
+	    throw new IllegalArgumentException("The method may not be null");
+	if (invocationTarget == null)
+	    throw new IllegalArgumentException("The invocation target may not be null");
+	return generateMethodPanel(invocationTarget, method, frame, names);
     }
 
     /**
@@ -523,6 +538,16 @@ public class SmartPanelFactory {
     }
 
     /**
+     * Sets the value of methodSpecificFactories to that of the parameter.
+     * 
+     * @param methodSpecificFactories
+     *            the methodSpecificFactories to set
+     */
+    public void setMethodSpecificFactories(IdentityHashMap<Method, SmartPanelFactory> methodSpecificFactories) {
+	this.methodSpecificFactories = methodSpecificFactories;
+    }
+
+    /**
      * Sets the value of name to that of the parameter.
      *
      * @param name
@@ -560,24 +585,5 @@ public class SmartPanelFactory {
      */
     public void setStringBuilder(SmartPanelBuilder stringBuilder) {
 	this.stringBuilder = stringBuilder;
-    }
-
-    /**
-     * Returns the methodSpecificFactories.
-     * 
-     * @return the methodSpecificFactories
-     */
-    public IdentityHashMap<Method, SmartPanelFactory> getMethodSpecificFactories() {
-	return methodSpecificFactories;
-    }
-
-    /**
-     * Sets the value of methodSpecificFactories to that of the parameter.
-     * 
-     * @param methodSpecificFactories
-     *            the methodSpecificFactories to set
-     */
-    public void setMethodSpecificFactories(IdentityHashMap<Method, SmartPanelFactory> methodSpecificFactories) {
-	this.methodSpecificFactories = methodSpecificFactories;
     }
 }

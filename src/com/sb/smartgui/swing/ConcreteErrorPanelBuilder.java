@@ -1,4 +1,4 @@
-package com.sb.smartgui;
+package com.sb.smartgui.swing;
 
 import java.awt.Container;
 import java.awt.Frame;
@@ -6,6 +6,11 @@ import java.awt.GridLayout;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+
+import com.sb.smartgui.ErrorPanelBuilder;
+import com.sb.smartgui.SmartFieldData;
+import com.sb.smartgui.SmartPanelFactory;
+import com.sb.smartgui.StringFormatter;
 
 public class ConcreteErrorPanelBuilder extends ErrorPanelBuilder {
 

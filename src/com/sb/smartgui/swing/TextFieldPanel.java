@@ -1,5 +1,6 @@
-package com.sb.smartgui;
+package com.sb.smartgui.swing;
 
+import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionListener;
 
@@ -19,7 +20,7 @@ public class TextFieldPanel extends JPanel {
     }
     
     public TextFieldPanel(String fieldName, ActionListener actionListener) {
-	super(new GridLayout(1, 2));
+	super(new FlowLayout());
 	this.fieldName = new JLabel(fieldName);
 	field = new JTextField();
 

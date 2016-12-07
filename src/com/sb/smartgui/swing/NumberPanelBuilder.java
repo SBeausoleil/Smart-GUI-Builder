@@ -1,36 +1,37 @@
-package com.sb.smartgui;
+package com.sb.smartgui.swing;
 
 import java.awt.Container;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
-import java.util.logging.Logger;
+import java.awt.event.ActionListener;
 
-import com.sb.smartgui.SmartObjectPanel.TextFieldActionListener;
+import com.sb.smartgui.FieldData;
+import com.sb.smartgui.SmartFieldData;
+import com.sb.smartgui.SmartPanelBuilder;
+import com.sb.smartgui.SmartPanelFactory;
+import com.sb.smartgui.StringFormatter;
 
 public class NumberPanelBuilder implements SmartPanelBuilder {
 
     private static final long serialVersionUID = 7370192634940756206L;
 
-    public static final Logger LOG = Logger.getLogger(NumberPanelBuilder.class.getName());
+    private int allowedSign;
 
-    // TODO define an annotation to denote fields that should not accept negative values
-    private boolean allowNegatives;
-
-    public NumberPanelBuilder(boolean allowNegatives) {
-	this.allowNegatives = allowNegatives;
+    public NumberPanelBuilder(int allowedSign) {
+	this.allowedSign = allowedSign;
     }
 
     @Override
-    public Container build(SmartFieldData fieldData, StringFormatter formatter, SmartPanelFactory factory, Frame frame) {
-	LOG.fine("args: fieldData.getType() = " + fieldData.getType().getName() + ", fieldData = " + fieldData
-		+ ", formatter = " + formatter
-		+ ", factory = " + factory + ", frame = " + frame);
+    public Container build(SmartFieldData fieldData, StringFormatter formatter, SmartPanelFactory factory,
+	    Frame frame) {
 	TextFieldPanel panel = null;
+	// Floating point number
 	if (fieldData.getType() == float.class || fieldData.getType() == Float.class
 		|| fieldData.getType() == double.class || fieldData.getType() == Float.class) {
 	    panel = new TextFieldPanel(formatter.format(fieldData.getName()));
 	    numberTextFieldSetting(panel, fieldData, true);
-	} else if (fieldData.getType() == byte.class || fieldData.getType() == Byte.class
+	} // Integer
+	else if (fieldData.getType() == byte.class || fieldData.getType() == Byte.class
 		|| fieldData.getType() == short.class || fieldData.getType() == Short.class
 		|| fieldData.getType() == int.class || fieldData.getType() == Integer.class
 		|| fieldData.getType() == long.class || fieldData.getType() == Long.class) {
@@ -42,59 +43,40 @@ public class NumberPanelBuilder implements SmartPanelBuilder {
 
     private void numberTextFieldSetting(TextFieldPanel panel, FieldData fieldData, boolean allowDecimal) {
 	// Set displayed field value
-	panel.setText(fieldData.getValue().toString());
+	System.out.println("fieldData: " + fieldData);
+	System.out.println("fieldData.getValue(): " + fieldData.getValue());
+	panel.setText(fieldData.getValue().toString()); 
 
-	TextFields.makeNumbersOnly(panel.getField(), allowDecimal, allowNegatives);
+	TextFields.makeNumbersOnly(panel.getField(), allowDecimal, allowedSign);
 	// Make listener
 	Class fieldClass = fieldData.getType();
-	TextFieldActionListener listener = new TextFieldActionListener(panel.getField(), fieldData) {
-	    private static final long serialVersionUID = 5345823902622688191L;
-
+	ActionListener listener = new ActionListener() {
 	    @Override
 	    public void actionPerformed(ActionEvent e) {
-		if (TEXT_FIELD.getText().length() > 0) {
+		if (panel.getField().getText().length() > 0) {
 		    if (!allowDecimal) {
 			if (fieldClass == byte.class || fieldClass == Byte.class)
-			    fieldData.setValue(Byte.parseByte(TEXT_FIELD.getText()));
+			    fieldData.setValue(Byte.parseByte(panel.getField().getText()));
 			else if (fieldClass == short.class || fieldClass == Short.class)
-			    fieldData.setValue(Short.parseShort(TEXT_FIELD.getText()));
+			    fieldData.setValue(Short.parseShort(panel.getField().getText()));
 			else if (fieldClass == int.class || fieldClass == Integer.class)
-			    fieldData.setValue(Integer.parseInt(TEXT_FIELD.getText()));
+			    fieldData.setValue(Integer.parseInt(panel.getField().getText()));
 			else // long || Long
-			    fieldData.setValue(Long.parseLong(TEXT_FIELD.getText()));
+			    fieldData.setValue(Long.parseLong(panel.getField().getText()));
 		    } else {
 			if (fieldClass == float.class || fieldClass == Float.class)
-			    fieldData.setValue(Float.parseFloat(TEXT_FIELD.getText()));
+			    fieldData.setValue(Float.parseFloat(panel.getField().getText()));
 			else // double || Double
-			    fieldData.setValue(Double.parseDouble(TEXT_FIELD.getText()));
+			    fieldData.setValue(Double.parseDouble(panel.getField().getText()));
 		    }
 		} else {
 		    // Rewrite the textfield content to be the value of the field
-		    TEXT_FIELD.setText(FIELD_DATA.getValue().toString());
+		    panel.getField().setText(fieldData.getValue().toString());
 		}
 	    }
 	};
 	// Add listener
 	panel.getField().addActionListener(listener);
-    }
-
-    /**
-     * Returns the allowNegatives.
-     * 
-     * @return the allowNegatives
-     */
-    public boolean isAllowNegatives() {
-	return allowNegatives;
-    }
-
-    /**
-     * Sets the value of allowNegatives to that of the parameter.
-     * 
-     * @param allowNegatives
-     *            the allowNegatives to set
-     */
-    public void setAllowNegatives(boolean allowNegatives) {
-	this.allowNegatives = allowNegatives;
     }
 
     @Override
