@@ -4,8 +4,10 @@ import java.awt.Container;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.lang.annotation.Annotation;
 
 import com.sb.smartgui.FieldData;
+import com.sb.smartgui.Sign;
 import com.sb.smartgui.SmartFieldData;
 import com.sb.smartgui.SmartPanelBuilder;
 import com.sb.smartgui.SmartPanelFactory;
@@ -14,12 +16,6 @@ import com.sb.smartgui.StringFormatter;
 public class NumberPanelBuilder implements SmartPanelBuilder {
 
     private static final long serialVersionUID = 7370192634940756206L;
-
-    private int allowedSign;
-
-    public NumberPanelBuilder(int allowedSign) {
-	this.allowedSign = allowedSign;
-    }
 
     @Override
     public Container build(SmartFieldData fieldData, StringFormatter formatter, SmartPanelFactory factory,
@@ -45,7 +41,7 @@ public class NumberPanelBuilder implements SmartPanelBuilder {
 	// Set displayed field value
 	panel.setText(fieldData.getValue().toString()); 
 
-	TextFields.makeNumbersOnly(panel.getField(), allowDecimal, allowedSign);
+	TextFields.makeNumbersOnly(panel.getField(), allowDecimal, checkSignAnnotation(fieldData.getAnnotations()));
 	// Make listener
 	Class fieldClass = fieldData.getType();
 	ActionListener listener = new ActionListener() {
@@ -75,6 +71,13 @@ public class NumberPanelBuilder implements SmartPanelBuilder {
 	};
 	// Add listener
 	panel.getField().addActionListener(listener);
+    }
+
+    private int checkSignAnnotation(Annotation[] annotations) {
+	for (Annotation annotation : annotations)
+	    if (annotation instanceof Sign)
+		return ((Sign) annotation).sign();
+	return Sign.NEUTRAL;
     }
 
     @Override
