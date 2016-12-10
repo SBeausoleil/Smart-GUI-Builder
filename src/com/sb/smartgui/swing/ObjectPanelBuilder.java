@@ -21,7 +21,6 @@ import com.sb.smartgui.SmartPanelBuilder;
 import com.sb.smartgui.SmartPanelFactory;
 import com.sb.smartgui.StringFormatter;
 
-// FIXME
 public class ObjectPanelBuilder implements SmartPanelBuilder {
 
     private static final long serialVersionUID = -3846982346227003615L;
@@ -59,7 +58,6 @@ public class ObjectPanelBuilder implements SmartPanelBuilder {
 	if (!supports(fieldData.getType()))
 	    return null;
 
-	// TODO test and IMPROVE // 2016-09-21: SB: Looks pretty clean
 	JPanel panel = new JPanel(new FlowLayout());
 	String fieldName = formatter.format(fieldData.getName());
 	panel.add(new JLabel(fieldName));

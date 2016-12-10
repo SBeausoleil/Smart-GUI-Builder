@@ -48,6 +48,7 @@ public class CharacterPanelBuilder implements SmartPanelBuilder {
 		}
 	    };
 	    TEXT_PANEL.getField().addActionListener(listener);
+	    return TEXT_PANEL;
 	}
 	return null;
     }

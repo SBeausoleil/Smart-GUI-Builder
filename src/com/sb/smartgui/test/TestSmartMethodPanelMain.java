@@ -8,7 +8,6 @@ import com.sb.smartgui.ExecutionListener;
 import com.sb.smartgui.SmartMethodPanel;
 import com.sb.smartgui.SmartPanelFactory;
 
-// TODO
 public class TestSmartMethodPanelMain {
 
     public static void main(String[] args) {

@@ -9,12 +9,14 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
+import java.util.Vector;
 
 import javax.swing.JButton;
 
 import com.sb.smartgui.swing.BooleanPanelBuilder;
 import com.sb.smartgui.swing.CharacterPanelBuilder;
 import com.sb.smartgui.swing.ConcreteErrorPanelBuilder;
+import com.sb.smartgui.swing.EnumPanelBuilder;
 import com.sb.smartgui.swing.NumberPanelBuilder;
 import com.sb.smartgui.swing.ObjectPanelBuilder;
 import com.sb.smartgui.swing.StringPanelBuilder;
@@ -26,13 +28,14 @@ public class SmartPanelFactory {
      * A map of all the created SmartObjectPanel.
      * Is needed to resolve looped references.
      */
-    protected static final IdentityHashMap<Object, SmartObjectPanel> PROCESSED_OBJECTS = new IdentityHashMap<>(); // OPTIMIZE test if IdentityHashMap is good in cases where 
+    protected static final IdentityHashMap<Object, SmartObjectPanel> PROCESSED_OBJECTS = new IdentityHashMap<>();
 
     public static StringFormatter defaultFormatter = new TitleStringFormatter();
     public static SmartPanelBuilder defaultNumberBuilder = new NumberPanelBuilder(0);
     public static SmartPanelBuilder defaultCharacterBuilder = new CharacterPanelBuilder();
     public static SmartPanelBuilder defaultBooleanBuilder = new BooleanPanelBuilder();
     public static SmartPanelBuilder defaultStringBuilder = new StringPanelBuilder();
+    public static SmartPanelBuilder defaultEnumBuilder = new EnumPanelBuilder();
     public static SmartPanelBuilder defaultObjectBuilder = new ObjectPanelBuilder();
     public static ErrorPanelBuilder defaultErrorBuilder = new ConcreteErrorPanelBuilder();
 
@@ -70,10 +73,14 @@ public class SmartPanelFactory {
      * Formats field names for representation on the UI.
      */
     protected StringFormatter formatter;
+
+    protected Vector<SmartPanelBuilder> builders;
+
     protected SmartPanelBuilder numberBuilder;
     protected SmartPanelBuilder characterBuilder;
     protected SmartPanelBuilder booleanBuilder;
     protected SmartPanelBuilder stringBuilder;
+    protected SmartPanelBuilder enumBuilder;
     protected SmartPanelBuilder objectBuilder;
     protected ErrorPanelBuilder errorPanelBuilder;
 
@@ -81,21 +88,21 @@ public class SmartPanelFactory {
 
     /**
      * Overriding factories for specific class.
-     * These factories have a priority of 1, meaning that they will override any and all specific
+     * These factories have a priority of 0, meaning that they will override any and all specific
      * builders of this factory.
      */
     protected IdentityHashMap<Class, SmartPanelFactory> classSpecificFactories;
 
     /**
      * Overriding factories for specific method.
-     * These factories have a priority of 1, meaning that they will override any and all specific
+     * These factories have a priority of 0, meaning that they will override any and all specific
      * builders of this factory.
      */
     protected IdentityHashMap<Method, SmartPanelFactory> methodSpecificFactories;
 
     /**
      * Overriding factories for specific constructor.
-     * These factories have a priority of 1, meaning that they will override any and all specific
+     * These factories have a priority of 0, meaning that they will override any and all specific
      * builders of this factory.
      */
     protected IdentityHashMap<Constructor, SmartPanelFactory> constructorSpecificFactories;
@@ -110,15 +117,26 @@ public class SmartPanelFactory {
     public SmartPanelFactory(String name) {
 	this.name = name;
 	this.formatter = defaultFormatter;
+
 	this.numberBuilder = defaultNumberBuilder;
 	this.characterBuilder = defaultCharacterBuilder;
 	this.booleanBuilder = defaultBooleanBuilder;
 	this.stringBuilder = defaultStringBuilder;
+	this.enumBuilder = defaultEnumBuilder;
+
 	this.objectBuilder = defaultObjectBuilder;
 	this.errorPanelBuilder = defaultErrorBuilder;
 	this.classSpecificFactories = new IdentityHashMap<>();
 	this.methodSpecificFactories = new IdentityHashMap<>();
 	this.constructorSpecificFactories = new IdentityHashMap<>();
+
+	// Add all the builders to the builders vector
+	builders = new Vector<>(8);
+	builders.add(numberBuilder);
+	builders.add(characterBuilder);
+	builders.add(booleanBuilder);
+	builders.add(stringBuilder);
+	builders.add(enumBuilder);
     }
 
     protected SmartConstructorPanel generateConstructorPanel(Constructor constructor, Frame frame, String[] names) {
@@ -247,13 +265,7 @@ public class SmartPanelFactory {
 
     /**
      * Creates a panel using the most appropriate SmartPanelBuilder.
-     * Checks the following SmartPanelBuilders in this specific order:
-     * <li>numberBuilder</li>
-     * <li>characterBuilder</li>
-     * <li>booleanPanel</li>
-     * <li>stringBuilder</li>
-     * <li>objectBuilder</li>
-     * <li>errorPanelBuilder</li>
+     * Checks the following SmartPanelBuilders in the order of the this#builders vector.
      * The first builder found to support the type of the specified fieldData is used.
      * In the class' default configuration, errorPanel will always catch everything if it is
      * reached.
@@ -263,20 +275,26 @@ public class SmartPanelFactory {
      * @param type
      * @return
      */
+    // FIXME CRITICAL: new version using the priority set misses most types even though they should be supported by the default builders.
     protected Container generatePanel(Frame frame, SmartFieldData fieldData, Class type) {
-	Container fieldPanel;
-	if (numberBuilder.supports(type))
-	    fieldPanel = numberBuilder.build(fieldData, formatter, this, frame);
-	else if (characterBuilder.supports(type))
-	    fieldPanel = characterBuilder.build(fieldData, formatter, this, frame);
-	else if (booleanBuilder.supports(type))
-	    fieldPanel = booleanBuilder.build(fieldData, formatter, this, frame);
-	else if (stringBuilder.supports(type))
-	    fieldPanel = stringBuilder.build(fieldData, formatter, this, frame);
-	else if (objectBuilder.supports(type))
+	Container fieldPanel = null;
+	System.out.println();
+	System.out.println("Type: " + type.getName());
+	for (SmartPanelBuilder builder : builders) {
+	    System.out.println("Builder: " + builder.getClass().getName());
+	    if (builder.supports(type)) {
+		fieldPanel = builder.build(fieldData, formatter, this, frame);
+		System.out.println("Accepted, fieldPanel = " + fieldPanel);
+		break;
+	    }
+	}
+
+	System.out.println("fieldPanel = " + fieldPanel);
+	if (fieldPanel == null && objectBuilder.supports(type))
 	    fieldPanel = objectBuilder.build(fieldData, formatter, this, frame);
-	else
+	if (fieldPanel == null)
 	    fieldPanel = errorPanelBuilder.build(fieldData, formatter, this, frame);
+
 	return fieldPanel;
     }
 
@@ -287,6 +305,15 @@ public class SmartPanelFactory {
      */
     public SmartPanelBuilder getBooleanBuilder() {
 	return booleanBuilder;
+    }
+
+    /**
+     * Returns the builders.
+     * 
+     * @return the builders
+     */
+    public Vector<SmartPanelBuilder> getBuilders() {
+	return builders;
     }
 
     /**
@@ -308,21 +335,21 @@ public class SmartPanelFactory {
     }
 
     /**
-     * Returns a SmartConstructorPanel for the supplied constructor.
-     * It is to note that depending upon the compiler's arguments, the name of each parameters may
-     * be erased, so the ability to provide names if desired is provided.
+     * Returns the constructorSpecificFactories.
      * 
-     * @param constructor
-     * @param frame
-     * @param names
-     *            the name of each parameters. Is optional.
-     * @return
+     * @return the constructorSpecificFactories
      */
-    public SmartConstructorPanel getSmartConstructorPanel(Constructor constructor, Frame frame, String... names) {
-	if (constructor == null)
-	    throw new IllegalArgumentException("Constructor may not be null.");
+    public IdentityHashMap<Constructor, SmartPanelFactory> getConstructorSpecificFactories() {
+	return constructorSpecificFactories;
+    }
 
-	return generateConstructorPanel(constructor, frame, names);
+    /**
+     * Returns the enumBuilder.
+     * 
+     * @return the enumBuilder
+     */
+    public SmartPanelBuilder getEnumBuilder() {
+	return enumBuilder;
     }
 
     /**
@@ -377,6 +404,24 @@ public class SmartPanelFactory {
      */
     public SmartPanelBuilder getObjectBuilder() {
 	return objectBuilder;
+    }
+
+    /**
+     * Returns a SmartConstructorPanel for the supplied constructor.
+     * It is to note that depending upon the compiler's arguments, the name of each parameters may
+     * be erased, so the ability to provide names if desired is provided.
+     * 
+     * @param constructor
+     * @param frame
+     * @param names
+     *            the name of each parameters. Is optional.
+     * @return
+     */
+    public SmartConstructorPanel getSmartConstructorPanel(Constructor constructor, Frame frame, String... names) {
+	if (constructor == null)
+	    throw new IllegalArgumentException("Constructor may not be null.");
+
+	return generateConstructorPanel(constructor, frame, names);
     }
 
     /**
@@ -487,6 +532,14 @@ public class SmartPanelFactory {
 	return stringBuilder;
     }
 
+    protected void replaceBuilder(SmartPanelBuilder oldBuilder, SmartPanelBuilder newBuilder) {
+	int index = builders.indexOf(oldBuilder);
+	if (index == -1)
+	    builders.add(newBuilder);
+	else
+	    builders.set(index, newBuilder);
+    }
+
     /**
      * Sets the value of booleanBuilder to that of the parameter.
      *
@@ -494,6 +547,7 @@ public class SmartPanelFactory {
      *            the booleanBuilder to set
      */
     public void setBooleanBuilder(SmartPanelBuilder booleanBuilder) {
+	replaceBuilder(this.booleanBuilder, booleanBuilder);
 	this.booleanBuilder = booleanBuilder;
     }
 
@@ -504,6 +558,7 @@ public class SmartPanelFactory {
      *            the characterBuilder to set
      */
     public void setCharacterBuilder(SmartPanelBuilder characterBuilder) {
+	replaceBuilder(this.characterBuilder, characterBuilder);
 	this.characterBuilder = characterBuilder;
     }
 
@@ -515,6 +570,28 @@ public class SmartPanelFactory {
      */
     public void setClassSpecificFactories(IdentityHashMap<Class, SmartPanelFactory> classSpecificFactories) {
 	this.classSpecificFactories = classSpecificFactories;
+    }
+
+    /**
+     * Sets the value of constructorSpecificFactories to that of the parameter.
+     * 
+     * @param constructorSpecificFactories
+     *            the constructorSpecificFactories to set
+     */
+    public void setConstructorSpecificFactories(
+	    IdentityHashMap<Constructor, SmartPanelFactory> constructorSpecificFactories) {
+	this.constructorSpecificFactories = constructorSpecificFactories;
+    }
+
+    /**
+     * Sets the value of enumBuilder to that of the parameter.
+     * 
+     * @param enumBuilder
+     *            the enumBuilder to set
+     */
+    public void setEnumBuilder(SmartPanelBuilder enumBuilder) {
+	replaceBuilder(this.enumBuilder, enumBuilder);
+	this.enumBuilder = enumBuilder;
     }
 
     /**
@@ -564,6 +641,7 @@ public class SmartPanelFactory {
      *            the numberBuilder to set
      */
     public void setNumberBuilder(SmartPanelBuilder numberBuilder) {
+	replaceBuilder(this.numberBuilder, numberBuilder);
 	this.numberBuilder = numberBuilder;
     }
 
@@ -584,6 +662,16 @@ public class SmartPanelFactory {
      *            the stringBuilder to set
      */
     public void setStringBuilder(SmartPanelBuilder stringBuilder) {
+	replaceBuilder(this.stringBuilder, stringBuilder);
 	this.stringBuilder = stringBuilder;
     }
 }
+
+/*
+ * Need: Make it possible to set the priority of each builder while retaining the ability to modify
+ * them.
+ * Solution: Use a Vector to list all the builders (priority set by index)
+ * -> Issue: Keeping track of where each builders are can be problematic.
+ * :: Solution :: Usage of the method <code>vector.indexOf(Object)</code> to find back the location
+ * of the main builders. User will have to keep track of his own builders.
+ */

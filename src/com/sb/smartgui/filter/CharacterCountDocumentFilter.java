@@ -4,7 +4,6 @@ import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DocumentFilter;
 
-// TODO test
 public class CharacterCountDocumentFilter extends LoggingDocumentFilter {
 
     private int maxCharCount;
@@ -25,7 +24,7 @@ public class CharacterCountDocumentFilter extends LoggingDocumentFilter {
 	    super.insertString(bypass, offset, accepted, attrSet);
     }
 
-    // TODO test
+
     @Override
     public void replace(FilterBypass fb, int offset, int length, String text,
 	    AttributeSet attrs) throws BadLocationException {

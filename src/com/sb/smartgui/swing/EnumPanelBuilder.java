@@ -16,13 +16,14 @@ import com.sb.smartgui.StringFormatter;
 
 public class EnumPanelBuilder implements SmartPanelBuilder {
 
-    // TESTME
+    private static final long serialVersionUID = -4521892423149025837L;
+
     @Override
     public Container build(SmartFieldData fieldData, StringFormatter formatter, SmartPanelFactory factory,
 	    Frame frame) {
 	if (supports(fieldData.getType())) {
 	    Object[] constants = fieldData.getType().getEnumConstants();
-	    JList options = new JList<>(constants);
+	    JList options = new JList<>(constants); // TODO find a way to format the displayed names of the constants
 	    // Set base selection
 	    options.setSelectedValue(fieldData.getValue(), true);
 	    // Make and add listener
@@ -38,7 +39,6 @@ public class EnumPanelBuilder implements SmartPanelBuilder {
 	return null;
     }
 
-    // TESTME
     @Override
     public boolean supports(Class<?> type) {
 	return Enum.class.isAssignableFrom(type);
