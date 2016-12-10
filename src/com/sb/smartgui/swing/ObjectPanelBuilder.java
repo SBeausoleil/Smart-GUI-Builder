@@ -52,9 +52,10 @@ public class ObjectPanelBuilder implements SmartPanelBuilder {
     public Container build(SmartFieldData fieldData, StringFormatter formatter, SmartPanelFactory factory,
 	    Frame frame) {
 
-	LOG.fine("args: fieldData.getType() = " + fieldData.getType().getName() + ", fieldData = " + fieldData
+	LOG.finer("args: fieldData.getType() = " + fieldData.getType().getName() + ", fieldData = " + fieldData
 		+ ", formatter = " + formatter
 		+ ", factory = " + factory + ", frame = " + frame);
+	
 	if (!supports(fieldData.getType()))
 	    return null;
 

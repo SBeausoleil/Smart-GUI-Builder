@@ -43,8 +43,6 @@ public class NumberPanelBuilder implements SmartPanelBuilder {
 
     private void numberTextFieldSetting(TextFieldPanel panel, FieldData fieldData, boolean allowDecimal) {
 	// Set displayed field value
-	System.out.println("fieldData: " + fieldData);
-	System.out.println("fieldData.getValue(): " + fieldData.getValue());
 	panel.setText(fieldData.getValue().toString()); 
 
 	TextFields.makeNumbersOnly(panel.getField(), allowDecimal, allowedSign);

@@ -12,7 +12,6 @@ public class CharacterCountDocumentFilter extends LoggingDocumentFilter {
     public CharacterCountDocumentFilter(int maxCharCount) {
 	this.maxCharCount = maxCharCount;
 	charCount = 0;
-	System.out.println("new CharacterCountDocumentFilter(" + maxCharCount + ")");
     }
 
     @Override

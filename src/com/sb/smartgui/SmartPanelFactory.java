@@ -278,18 +278,13 @@ public class SmartPanelFactory {
     // FIXME CRITICAL: new version using the priority set misses most types even though they should be supported by the default builders.
     protected Container generatePanel(Frame frame, SmartFieldData fieldData, Class type) {
 	Container fieldPanel = null;
-	System.out.println();
-	System.out.println("Type: " + type.getName());
 	for (SmartPanelBuilder builder : builders) {
-	    System.out.println("Builder: " + builder.getClass().getName());
 	    if (builder.supports(type)) {
 		fieldPanel = builder.build(fieldData, formatter, this, frame);
-		System.out.println("Accepted, fieldPanel = " + fieldPanel);
 		break;
 	    }
 	}
 
-	System.out.println("fieldPanel = " + fieldPanel);
 	if (fieldPanel == null && objectBuilder.supports(type))
 	    fieldPanel = objectBuilder.build(fieldData, formatter, this, frame);
 	if (fieldPanel == null)
