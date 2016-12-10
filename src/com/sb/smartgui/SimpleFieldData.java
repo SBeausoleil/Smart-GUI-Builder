@@ -1,20 +1,24 @@
 package com.sb.smartgui;
 
+import java.lang.annotation.Annotation;
+
 public class SimpleFieldData<E> implements FieldData<E> {
 
-    private Class<E> type;
+    private final Class<E> TYPE;
     private String name;
     protected E value;
+    private Annotation[] annotations;
     
-    public SimpleFieldData(Class<E> type, String name, E value) {
-	this.type = type;
+    public SimpleFieldData(Class<E> type, String name, E value, Annotation[] annotations) {
+	this.TYPE = type;
 	this.name = name;
 	this.value = value;
+	setAnnotations(annotations);
     }
 
     @Override
     public Class<E> getType() {
-	return type;
+	return TYPE;
     }
 
     @Override
@@ -32,4 +36,14 @@ public class SimpleFieldData<E> implements FieldData<E> {
 	this.value = value;
     }
 
+    @Override
+    public Annotation[] getAnnotations() {
+	return annotations;
+    }
+
+    public final void setAnnotations(Annotation[] annotations) {
+	if (annotations == null)
+	    annotations = new Annotation[0];
+	this.annotations = annotations;
+    }
 }

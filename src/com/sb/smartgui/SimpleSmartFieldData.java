@@ -1,6 +1,7 @@
 package com.sb.smartgui;
 
 import java.awt.Container;
+import java.lang.annotation.Annotation;
 
 public class SimpleSmartFieldData<E> extends SimpleFieldData<E> implements SmartFieldData<E> {
 
@@ -10,13 +11,13 @@ public class SimpleSmartFieldData<E> extends SimpleFieldData<E> implements Smart
     protected boolean display;
     protected int index;
 
-    public SimpleSmartFieldData(Class<E> type, String name, E value, Container ownerContainer, Container panel) {
-	this(type, name, value, ownerContainer, panel, null, true);
+    public SimpleSmartFieldData(Class<E> type, String name, E value, Annotation[] annotations, Container ownerContainer, Container panel) {
+	this(type, name, value, annotations, ownerContainer, panel, null, true);
     }
 
-    public SimpleSmartFieldData(Class<E> type, String name, E value, Container ownerPanel, Container panel,
+    public SimpleSmartFieldData(Class<E> type, String name, E value,  Annotation[] annotations, Container ownerPanel, Container panel,
 	    AbstractSmartPanel<?> innerPanel, boolean display) {
-	super(type, name, value);
+	super(type, name, value, annotations);
 	this.ownerPanel = ownerPanel;
 	this.panel = panel;
 	this.innerPanel = innerPanel;

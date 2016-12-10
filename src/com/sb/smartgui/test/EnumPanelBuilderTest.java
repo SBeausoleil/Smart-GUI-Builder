@@ -38,10 +38,10 @@ public class EnumPanelBuilderTest {
      */
     protected static void generalExecutionTest(EnumPanelBuilder builder) {
 	SimpleSmartFieldData simpleEnum = new SimpleSmartFieldData<>(SimpleEnum.class, "SimpleEnum", SimpleEnum.ALPHA, null,
-		null);
+		null, null);
 	Container simplePanel = builder.build(simpleEnum, new TitleStringFormatter(), null, null);
 
-	SimpleSmartFieldData complexEnum = new SimpleSmartFieldData<>(ComplexEnum.class, "ComplexEnum", ComplexEnum.GEMINI, null, null);
+	SimpleSmartFieldData complexEnum = new SimpleSmartFieldData<>(ComplexEnum.class, "ComplexEnum", ComplexEnum.GEMINI, null, null, null);
 	Container complexPanel = builder.build(complexEnum, new TitleStringFormatter(), null, null);
 	
 	JFrame frame = new JFrame("Enum test");

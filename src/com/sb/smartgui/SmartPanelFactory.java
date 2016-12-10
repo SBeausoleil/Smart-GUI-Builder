@@ -168,7 +168,7 @@ public class SmartPanelFactory {
 	    paramPanel = null;
 	    type = parameters[i].getType();
 	    SimpleSmartFieldData fieldData = new SimpleSmartFieldData(type,
-		    (i < names.length ? names[i] : parameters[i].getName()), null, smartPanel,
+		    (i < names.length ? names[i] : parameters[i].getName()), null, null, smartPanel,
 		    paramPanel);
 
 	    // Give a basic value to the fieldData (doing otherwise will usually result in a crash from one of the builders)
