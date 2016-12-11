@@ -8,15 +8,13 @@ import com.sb.smartgui.Sign;
 
 public class NumberDocumentFilter extends DocumentFilter {
 
-    private static final String NUMBER_REGEX = "[0-9]+";
+    private static final String NUMBER_REGEX = "[0-9]*";
 
-    private boolean allowDecimal;
     private int allowedSign;
 
     private String regex;
 
     public NumberDocumentFilter(boolean allowDecimal, int allowedSign) {
-	this.allowDecimal = allowDecimal;
 	this.allowedSign = allowedSign;
 	regex = NUMBER_REGEX;
 	if (allowDecimal)
@@ -75,18 +73,8 @@ public class NumberDocumentFilter extends DocumentFilter {
      * 
      * @return the allowDecimal
      */
-    public boolean isAllowDecimal() {
-	return allowDecimal;
-    }
-
-    /**
-     * Sets the value of allowDecimal to that of the parameter.
-     * 
-     * @param allowDecimal
-     *            the allowDecimal to set
-     */
-    public void setAllowDecimal(boolean allowDecimal) {
-	this.allowDecimal = allowDecimal;
+    public boolean allowDecimal() {
+	return regex.contains(".");
     }
 
     private String simulateInsert(String docContent, int offset, String insert) {
