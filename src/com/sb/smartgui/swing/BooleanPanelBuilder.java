@@ -3,8 +3,6 @@ package com.sb.smartgui.swing;
 import java.awt.Container;
 import java.awt.FlowLayout;
 import java.awt.Frame;
-import java.awt.GridLayout;
-import java.util.logging.Logger;
 
 import javax.swing.JLabel;
 import javax.swing.JList;

@@ -31,7 +31,7 @@ public class SmartPanelFactory {
     protected static final IdentityHashMap<Object, SmartObjectPanel> PROCESSED_OBJECTS = new IdentityHashMap<>();
 
     public static StringFormatter defaultFormatter = new TitleStringFormatter();
-    public static SmartPanelBuilder defaultNumberBuilder = new NumberPanelBuilder(0);
+    public static SmartPanelBuilder defaultNumberBuilder = new NumberPanelBuilder();
     public static SmartPanelBuilder defaultCharacterBuilder = new CharacterPanelBuilder();
     public static SmartPanelBuilder defaultBooleanBuilder = new BooleanPanelBuilder();
     public static SmartPanelBuilder defaultStringBuilder = new StringPanelBuilder();
@@ -81,7 +81,16 @@ public class SmartPanelFactory {
     protected SmartPanelBuilder booleanBuilder;
     protected SmartPanelBuilder stringBuilder;
     protected SmartPanelBuilder enumBuilder;
+
+    /**
+     * The builder for generic objects.
+     * Is <b>always</b> called second to last.
+     */
     protected SmartPanelBuilder objectBuilder;
+    /**
+     * The builder for objects that are not supported by any builder.
+     * Is <b>always</b> called last.
+     */
     protected ErrorPanelBuilder errorPanelBuilder;
 
     protected String name;
@@ -130,7 +139,7 @@ public class SmartPanelFactory {
 	this.methodSpecificFactories = new IdentityHashMap<>();
 	this.constructorSpecificFactories = new IdentityHashMap<>();
 
-	// Add all the builders to the builders vector
+	// Add all the unfixed-priority builders to the builders vector
 	builders = new Vector<>(8);
 	builders.add(numberBuilder);
 	builders.add(characterBuilder);

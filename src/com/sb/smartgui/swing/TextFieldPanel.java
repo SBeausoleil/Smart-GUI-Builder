@@ -1,7 +1,6 @@
 package com.sb.smartgui.swing;
 
 import java.awt.FlowLayout;
-import java.awt.GridLayout;
 import java.awt.event.ActionListener;
 
 import javax.swing.JLabel;

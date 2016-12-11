@@ -18,12 +18,14 @@ public class EnumPanelBuilderTest {
     private enum ComplexEnum {
 	DELTA("Delta"), ECHO("Echo"), FOXTROT("Foxtrot"), HOTEL("Hotel"), GEMINI("Gemini");
 	
+	@SuppressWarnings("unused")
 	private String name;
 	
 	ComplexEnum(String name) {
 	    this.name = name;
 	}
 	
+	@SuppressWarnings("unused")
 	public void foo() {}
     }
     
