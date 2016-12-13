@@ -421,7 +421,7 @@ public class SmartPanelFactory {
      *            the name of each parameters. Is optional.
      * @return
      */
-    public SmartConstructorPanel getSmartConstructorPanel(Constructor constructor, Frame frame, String... names) {
+    public <T> SmartConstructorPanel<T> getSmartConstructorPanel(Constructor<T> constructor, Frame frame, String... names) {
 	if (constructor == null)
 	    throw new IllegalArgumentException("Constructor may not be null.");
 
@@ -442,7 +442,7 @@ public class SmartPanelFactory {
      * @param names
      * @return a new SmartMethodPanel
      */
-    public SmartMethodPanel getSmartMethodPanel(Object invocationTarget, Method method, Frame frame, String... names) {
+    public <T> SmartMethodPanel<?, T> getSmartMethodPanel(T invocationTarget, Method method, Frame frame, String... names) {
 	if (method == null)
 	    throw new IllegalArgumentException("The method may not be null");
 	if (invocationTarget == null)
@@ -459,7 +459,7 @@ public class SmartPanelFactory {
      * @param ignore
      * @return
      */
-    public SmartObjectPanel getSmartObjectPanel(Class clazz, Frame frame, Field... ignore) {
+    public <T> SmartObjectPanel<T> getSmartObjectPanel(Class<T> clazz, Frame frame, Field... ignore) {
 	return generateObjectPanel(ClassUtil.instantiate(clazz), frame, ignore);
     }
 
@@ -468,6 +468,7 @@ public class SmartPanelFactory {
      * Is best used when the Field's value is null but will work nevertheless if it is initialized.
      *
      * @param field
+     * @param fieldType TODO
      * @param fieldOwner
      * @param frame
      * @param ignore
@@ -476,7 +477,7 @@ public class SmartPanelFactory {
      * @throws IllegalAccessException
      * @see #getSmartObjectPanel(FieldData, Frame, Field...)
      */
-    public SmartObjectPanel getSmartObjectPanel(Field field, Object fieldOwner, Frame frame, Field... ignore)
+    public <T> SmartObjectPanel<T> getSmartObjectPanel(Field field, Class<T> fieldType, Object fieldOwner, Frame frame, Field... ignore)
 	    throws IllegalArgumentException, IllegalAccessException {
 	Object fieldValue = field.get(fieldOwner);
 	if (fieldValue == null) {
@@ -484,7 +485,7 @@ public class SmartPanelFactory {
 	    fieldValue = ClassUtil.instantiate(field.getType());
 	    field.set(fieldOwner, fieldValue);
 	}
-	return getSmartObjectPanel(fieldValue, frame, ignore);
+	return (SmartObjectPanel<T>) getSmartObjectPanel(fieldValue, frame, ignore);
     }
 
     /**
@@ -496,10 +497,10 @@ public class SmartPanelFactory {
      * @param ignore
      * @return
      */
-    public SmartObjectPanel getSmartObjectPanel(FieldData fieldData, Frame frame, Field... ignore) {
+    public <T> SmartObjectPanel<T> getSmartObjectPanel(FieldData<T> fieldData, Frame frame, Field... ignore) {
 	// This method does not check for a
 	if (fieldData.getValue() == null)
-	    fieldData.setValue(ClassUtil.instantiate(fieldData.getType()));
+	    fieldData.setValue((T) ClassUtil.instantiate(fieldData.getType()));
 	return getSmartObjectPanel(fieldData.getValue(), frame, ignore);
     }
 
@@ -513,13 +514,13 @@ public class SmartPanelFactory {
      * @param ignore
      * @return
      */
-    public SmartObjectPanel getSmartObjectPanel(Object target, Frame frame, Field... ignore) {
+    public <T> SmartObjectPanel<T> getSmartObjectPanel(T target, Frame frame, Field... ignore) {
 	// NULL argument is not accepted
 	if (target == null)
 	    throw new IllegalArgumentException("The target may not be NULL.");
 
 	// Check if the target is already processed
-	SmartObjectPanel panel = PROCESSED_OBJECTS.get(target);
+	SmartObjectPanel<T> panel = PROCESSED_OBJECTS.get(target);
 	if (panel != null) // If so, return the already processed form
 	    return panel;
 

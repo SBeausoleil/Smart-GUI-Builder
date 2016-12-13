@@ -7,7 +7,7 @@ import java.lang.annotation.Annotation;
  * 
  * @author Samuel Beausoleil
  * @param <E>
- *            the type of data that is wrapped by this IFieldData
+ *            the type of data that is wrapped by this FieldData
  */
 public interface FieldData<E> {
 
