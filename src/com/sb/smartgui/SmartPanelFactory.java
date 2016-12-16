@@ -251,7 +251,8 @@ public class SmartPanelFactory {
 	    field.setAccessible(true);
 
 	    Container fieldPanel = null;
-	    SmartObjectFieldData fieldData = new SmartObjectFieldData(target, field, null);
+	    ObjectFieldData fieldData = new ObjectFieldData(target, field, null);
+	    SmartFieldDataDecorator decorator = new SmartFieldDataDecorator<>(fieldData);
 	    Class type = fieldData.getType();
 
 	    // Check for any overriding class specific factories
@@ -259,13 +260,13 @@ public class SmartPanelFactory {
 	    if (overridingFactory != null)
 		fieldPanel = overridingFactory.generateObjectPanel(target, frame);
 	    else
-		fieldPanel = generatePanel(frame, fieldData, type);
+		fieldPanel = generatePanel(frame, decorator, type);
 
-	    fieldData.setPanel(fieldPanel);
+	    decorator.setPanel(fieldPanel);
 	    if (fieldPanel != null) {
 		smartPanel.add(fieldPanel);
 		smartPanel.getFieldsMap().put(fieldData.getField(), fieldData);
-		fieldData.setOwnerContainer(smartPanel);
+		decorator.setOwnerContainer(smartPanel);
 	    }
 	}
 
@@ -274,6 +275,11 @@ public class SmartPanelFactory {
 
     /**
      * Creates a panel using the most appropriate SmartPanelBuilder.
+     * <p>
+     * <b>WARNING: Direct usage of this method is discouraged.</b> <br/>
+     * This method should only be used directly by objects extending this class or implementing a
+     * SmartBuilder.
+     * <p>
      * Checks the following SmartPanelBuilders in the order of the this#builders vector.
      * The first builder found to support the type of the specified fieldData is used.
      * In the class' default configuration, errorPanel will always catch everything if it is
@@ -284,8 +290,7 @@ public class SmartPanelFactory {
      * @param type
      * @return
      */
-    // FIXME CRITICAL: new version using the priority set misses most types even though they should be supported by the default builders.
-    protected Container generatePanel(Frame frame, SmartFieldData fieldData, Class type) {
+    public Container generatePanel(Frame frame, SmartFieldData fieldData, Class type) {
 	Container fieldPanel = null;
 	for (SmartPanelBuilder builder : builders) {
 	    if (builder.supports(type)) {
@@ -421,7 +426,8 @@ public class SmartPanelFactory {
      *            the name of each parameters. Is optional.
      * @return
      */
-    public <T> SmartConstructorPanel<T> getSmartConstructorPanel(Constructor<T> constructor, Frame frame, String... names) {
+    public <T> SmartConstructorPanel<T> getSmartConstructorPanel(Constructor<T> constructor, Frame frame,
+	    String... names) {
 	if (constructor == null)
 	    throw new IllegalArgumentException("Constructor may not be null.");
 
@@ -442,7 +448,8 @@ public class SmartPanelFactory {
      * @param names
      * @return a new SmartMethodPanel
      */
-    public <T> SmartMethodPanel<?, T> getSmartMethodPanel(T invocationTarget, Method method, Frame frame, String... names) {
+    public <T> SmartMethodPanel<?, T> getSmartMethodPanel(T invocationTarget, Method method, Frame frame,
+	    String... names) {
 	if (method == null)
 	    throw new IllegalArgumentException("The method may not be null");
 	if (invocationTarget == null)
@@ -468,16 +475,22 @@ public class SmartPanelFactory {
      * Is best used when the Field's value is null but will work nevertheless if it is initialized.
      *
      * @param field
-     * @param fieldType TODO
+     *            The Field which wraps the target value
+     * @param fieldType
+     *            The type of the field
      * @param fieldOwner
+     *            The Object owning the field argument
      * @param frame
+     *            The Frame which will hold the produced SmartObjectPanel
      * @param ignore
+     *            Fields to ignore within the wrapped value in the field argument
      * @return
      * @throws IllegalArgumentException
      * @throws IllegalAccessException
      * @see #getSmartObjectPanel(FieldData, Frame, Field...)
      */
-    public <T> SmartObjectPanel<T> getSmartObjectPanel(Field field, Class<T> fieldType, Object fieldOwner, Frame frame, Field... ignore)
+    public <T> SmartObjectPanel<T> getSmartObjectPanel(Field field, Class<T> fieldType, Object fieldOwner, Frame frame,
+	    Field... ignore)
 	    throws IllegalArgumentException, IllegalAccessException {
 	Object fieldValue = field.get(fieldOwner);
 	if (fieldValue == null) {

@@ -12,7 +12,7 @@ public class SmartObjectPanel<E> extends AbstractSmartPanel<E> {
 
     protected E target;
 
-    protected final LinkedHashMap<Field, SmartObjectFieldData> FIELDS_MAP = new LinkedHashMap<>();
+    protected final LinkedHashMap<Field, SmartFieldDataDecorator<?, ObjectFieldData>> FIELDS_MAP = new LinkedHashMap<>();
 
     protected SmartPanelFactory maker;
 
@@ -21,22 +21,12 @@ public class SmartObjectPanel<E> extends AbstractSmartPanel<E> {
 	this.maker = maker;
     }
 
-    public void display(Field field) {
-	SmartObjectFieldData data = FIELDS_MAP.get(field);
-	if (data == null)
-	    throw new IllegalArgumentException(
-		    "Field \"" + field.getName() + "\" is not a member of the object targetted by this panel.");
-	data.display(true);
-	add(data.getPanel(), data.getIndex());
-	repaint();
-    }
-
     /**
      * Returns the fieldsMap.
      * 
      * @return the fieldsMap
      */
-    public LinkedHashMap<Field, SmartObjectFieldData> getFieldsMap() {
+    public LinkedHashMap<Field, SmartFieldDataDecorator<?, ObjectFieldData>> getFieldsMap() {
 	return FIELDS_MAP;
     }
 
@@ -51,17 +41,6 @@ public class SmartObjectPanel<E> extends AbstractSmartPanel<E> {
 	return target;
     }
 
-    public void hide(Field field) {
-	SmartObjectFieldData data = FIELDS_MAP.get(field);
-	if (data == null)
-	    throw new IllegalArgumentException(
-		    "Field \"" + field.getName() + "\" is not a member of the object targetted by this panel.");
-	data.display(false);
-	data.updateIndex();
-	remove(data.getPanel());
-	repaint();
-    }
-
     /**
      * Sets the value of target to that of the parameter.
      * 
@@ -71,8 +50,8 @@ public class SmartObjectPanel<E> extends AbstractSmartPanel<E> {
     @Override
     public void setTarget(E target) {
 	this.target = target;
-	for (SmartObjectFieldData field : FIELDS_MAP.values())
-	    field.setFieldOwner(target);
+	for (SmartFieldDataDecorator<?, ObjectFieldData> field : FIELDS_MAP.values())
+	    field.getFieldData().setFieldOwner(target);
     }
     
     @Override

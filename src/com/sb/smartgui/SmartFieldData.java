@@ -24,13 +24,13 @@ public interface SmartFieldData<E> extends FieldData<E> {
     /**
      * Sets the container that holds this SmartFieldData.
      * Calling this method will <b>not</b> automatically remove this SmartFieldData's panel from
-     * it's
-     * precedent ownerContainer.
+     * it's precedent ownerContainer.
+     * <code>updateIndex()</code> should be called after having added this SmartFieldData to it's new ownerContainer.
      * 
-     * @param ownerPanel
+     * @param ownerContainer
      *            the new panel to hold this SmartFieldData.
      */
-    public void setOwnerContainer(Container ownerPanel);
+    public void setOwnerContainer(Container ownerContainer);
 
     /**
      * Returns the panel which represents this data as the first layer of display.
@@ -41,6 +41,9 @@ public interface SmartFieldData<E> extends FieldData<E> {
 
     /**
      * Sets the panel which represents this data as the first layer of display.
+     * Calling this method will <b>not</b> automatically remove the original panel from it's
+     * ownerContainer.
+     * <code>updateIndex()</code> should be called after having added the new panel to it's owner container.
      * 
      * @param panel
      */
@@ -66,14 +69,15 @@ public interface SmartFieldData<E> extends FieldData<E> {
      * 
      * @return <t>true</t> if it is displayed
      */
-    public boolean isDisplayed();
+    public boolean isVisible();
 
     /**
      * Sets whether the field should be displayed or not.
+     * Calling this method will affect the owner container of this object and it's panel.
      * 
      * @param display
      */
-    public void display(boolean display);
+    public void visible(boolean display);
 
     /**
      * Returns the index of it's display order within it's owner panel.
@@ -84,7 +88,8 @@ public interface SmartFieldData<E> extends FieldData<E> {
 
     /**
      * Sets the index of the SmartFieldData.
-     * This method does <b>not</b> change the index of the SmartFieldData within it's owner container,
+     * This method does <b>not</b> change the index of the SmartFieldData within it's owner
+     * container,
      * it only changes it's internal index variable. For the purpose of actually changing it's
      * display order, use <code>changeIndex(int)</code>.
      * 
@@ -93,7 +98,8 @@ public interface SmartFieldData<E> extends FieldData<E> {
     public void setIndex(int index);
 
     /**
-     * Updates the stored index to reflect it's position within the components of it's owner container.
+     * Updates the stored index to reflect it's position within the components of it's owner
+     * container.
      * If there is no known owner container, the index value will be set to -1.
      * 
      * @return the new index
