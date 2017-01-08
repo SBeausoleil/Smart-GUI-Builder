@@ -24,7 +24,6 @@ public class ArrayElementData<E> implements FieldData<E> {
     /**
      * Tests the type of an array against the generic type of this ArrayElementData.
      */
-    // TESTME
     protected void testType(Object array) {
 	try {
 	    @SuppressWarnings("unused")

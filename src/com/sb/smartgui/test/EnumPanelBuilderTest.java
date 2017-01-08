@@ -5,7 +5,8 @@ import java.awt.FlowLayout;
 
 import javax.swing.JFrame;
 
-import com.sb.smartgui.SimpleSmartFieldData;
+import com.sb.smartgui.SimpleFieldData;
+import com.sb.smartgui.SmartFieldDataDecorator;
 import com.sb.smartgui.TitleStringFormatter;
 import com.sb.smartgui.swing.EnumPanelBuilder;
 
@@ -39,11 +40,10 @@ public class EnumPanelBuilderTest {
      * @param builder
      */
     protected static void generalExecutionTest(EnumPanelBuilder builder) {
-	SimpleSmartFieldData simpleEnum = new SimpleSmartFieldData<>(SimpleEnum.class, "SimpleEnum", SimpleEnum.ALPHA, null,
-		null, null);
+	SmartFieldDataDecorator simpleEnum = new SmartFieldDataDecorator(new SimpleFieldData<>(SimpleEnum.class, "SimpleEnum", SimpleEnum.ALPHA, null));
 	Container simplePanel = builder.build(simpleEnum, new TitleStringFormatter(), null, null);
 
-	SimpleSmartFieldData complexEnum = new SimpleSmartFieldData<>(ComplexEnum.class, "ComplexEnum", ComplexEnum.GEMINI, null, null, null);
+	SmartFieldDataDecorator complexEnum = new SmartFieldDataDecorator(new SimpleFieldData<>(ComplexEnum.class, "ComplexEnum", ComplexEnum.GEMINI, null));
 	Container complexPanel = builder.build(complexEnum, new TitleStringFormatter(), null, null);
 	
 	JFrame frame = new JFrame("Enum test");

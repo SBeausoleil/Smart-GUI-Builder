@@ -9,8 +9,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import com.sb.smartgui.ArrayElementData;
-import com.sb.smartgui.ClassUtil;
-import com.sb.smartgui.SimpleSmartFieldData;
 import com.sb.smartgui.SmartFieldData;
 import com.sb.smartgui.SmartPanelBuilder;
 import com.sb.smartgui.SmartPanelFactory;
