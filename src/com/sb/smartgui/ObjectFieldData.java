@@ -5,6 +5,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 
 import javax.swing.JPanel;
 
@@ -84,24 +85,6 @@ public class ObjectFieldData<E, T> implements Serializable, FieldData<E> {
 	this.setter = setter;
     }
 
-    /**
-     * Updates the current state of the field value.
-     * Will try to set the field's value by reflection or if possible, via a setter method.
-     * 
-     * @param obj
-     *            the new value of the field
-     */
-    public void updateField(Object obj) {
-	try {
-	    if (setter != null)
-		setter.invoke(fieldOwner, obj);
-	    else
-		FIELD.set(fieldOwner, obj);
-	} catch (InvocationTargetException | IllegalAccessException e) {
-	    throw new RuntimeException(e);
-	}
-    }
-
     @Override
     public Class<E> getType() {
 	return (Class<E>) FIELD.getType();
@@ -123,7 +106,16 @@ public class ObjectFieldData<E, T> implements Serializable, FieldData<E> {
 
     @Override
     public void setValue(E value) {
-	updateField(value);
+	if (!Modifier.isFinal(FIELD.getModifiers())) {
+	    try {
+		if (setter != null)
+		    setter.invoke(fieldOwner, value);
+		else
+		    FIELD.set(fieldOwner, value);
+	    } catch (InvocationTargetException | IllegalAccessException e) {
+		throw new RuntimeException(e);
+	    }
+	}
     }
 
     @Override
@@ -133,9 +125,11 @@ public class ObjectFieldData<E, T> implements Serializable, FieldData<E> {
 
     /**
      * Sets the value of fieldOwner to that of the parameter.
-     * @param fieldOwner the fieldOwner to set
+     * 
+     * @param fieldOwner
+     *            the fieldOwner to set
      */
     public void setFieldOwner(T fieldOwner) {
-        this.fieldOwner = fieldOwner;
+	this.fieldOwner = fieldOwner;
     }
 }
