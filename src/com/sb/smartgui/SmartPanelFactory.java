@@ -21,7 +21,6 @@ import com.sb.smartgui.swing.NumberPanelBuilder;
 import com.sb.smartgui.swing.ObjectPanelBuilder;
 import com.sb.smartgui.swing.StringPanelBuilder;
 
-// TODO test for support of enums
 public class SmartPanelFactory {
 
     /**
@@ -512,7 +511,7 @@ public class SmartPanelFactory {
     public <T> SmartObjectPanel<T> getSmartObjectPanel(FieldData<T> fieldData, Frame frame, Field... ignore) {
 	// This method does not check for a
 	if (fieldData.getValue() == null)
-	    fieldData.setValue((T) ClassUtil.instantiate(fieldData.getType()));
+	    fieldData.setValue(ClassUtil.instantiate(fieldData.getType()));
 	return getSmartObjectPanel(fieldData.getValue(), frame, ignore);
     }
 
@@ -683,12 +682,3 @@ public class SmartPanelFactory {
 	this.stringBuilder = stringBuilder;
     }
 }
-
-/*
- * Need: Make it possible to set the priority of each builder while retaining the ability to modify
- * them.
- * Solution: Use a Vector to list all the builders (priority set by index)
- * -> Issue: Keeping track of where each builders are can be problematic.
- * :: Solution :: Usage of the method <code>vector.indexOf(Object)</code> to find back the location
- * of the main builders. User will have to keep track of his own builders.
- */

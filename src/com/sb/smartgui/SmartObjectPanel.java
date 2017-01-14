@@ -12,13 +12,21 @@ public class SmartObjectPanel<E> extends AbstractSmartPanel<E> {
 
     protected E target;
 
-    protected final LinkedHashMap<Field, SmartFieldDataDecorator<?, ObjectFieldData>> FIELDS_MAP = new LinkedHashMap<>();
+    protected final LinkedHashMap<Field, SmartFieldDataDecorator<?, ObjectFieldData>> FIELDS_MAP;
 
     protected SmartPanelFactory maker;
 
     protected SmartObjectPanel(E target, SmartPanelFactory maker) {
 	this.target = target;
 	this.maker = maker;
+	FIELDS_MAP = new LinkedHashMap<>();
+    }
+
+    protected SmartObjectPanel(E target, SmartPanelFactory maker,
+	    LinkedHashMap<Field, SmartFieldDataDecorator<?, ObjectFieldData>> fields) {
+	this.target = target;
+	this.maker = maker;
+	this.FIELDS_MAP = fields;
     }
 
     /**
@@ -29,7 +37,6 @@ public class SmartObjectPanel<E> extends AbstractSmartPanel<E> {
     public LinkedHashMap<Field, SmartFieldDataDecorator<?, ObjectFieldData>> getFieldsMap() {
 	return FIELDS_MAP;
     }
-
 
     /**
      * Returns the target.
@@ -53,7 +60,7 @@ public class SmartObjectPanel<E> extends AbstractSmartPanel<E> {
 	for (SmartFieldDataDecorator<?, ObjectFieldData> field : FIELDS_MAP.values())
 	    field.getFieldData().setFieldOwner(target);
     }
-    
+
     @Override
     public SmartFieldData[] getFields() {
 	return FIELDS_MAP.values().toArray(new SmartFieldData[FIELDS_MAP.size()]);

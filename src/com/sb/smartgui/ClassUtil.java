@@ -31,60 +31,36 @@ public final class ClassUtil {
 
     private ClassUtil() {}
 
-    public static Object instantiate(Class<?> clazz) {
+    public static <T> T instantiate(Class<T> clazz) {
 	LOG.fine(clazz.getName());
 
 	// Test for primitives
 	if (clazz == byte.class || clazz == short.class || clazz == int.class || clazz == long.class
 		|| clazz == float.class || clazz == double.class)
-	    return numberInitializationValue;
+	    return (T) toObject(numberInitializationValue);
 	else if (clazz == char.class)
-	    return charInitializationValue;
+	    return (T) toObject(charInitializationValue);
 	else if (clazz == boolean.class)
-	    return booleanInitializationValue;
+	    return (T) toObject(booleanInitializationValue);
 	// Test for primitives wrappers
-	if (clazz == Byte.class) {
-	    try {
+	try {
+	    if (clazz == Byte.class)
 		return clazz.getConstructor(byte.class).newInstance((byte) numberInitializationValue);
-	    } catch (InstantiationException | IllegalAccessException | IllegalArgumentException
-		    | InvocationTargetException | NoSuchMethodException | SecurityException e) {
-		// e.printStackTrace(); // Silence the exception
-	    }
-	} else if (clazz == Short.class) {
-	    try {
+	    else if (clazz == Short.class)
 		return clazz.getConstructor(short.class).newInstance((short) numberInitializationValue);
-	    } catch (InstantiationException | IllegalAccessException | IllegalArgumentException
-		    | InvocationTargetException | NoSuchMethodException | SecurityException e) {
-		// e.printStackTrace(); // Silence the exception
-	    }
-	} else if (clazz == Integer.class) {
-	    try {
+	    else if (clazz == Integer.class)
 		return clazz.getConstructor(int.class).newInstance(numberInitializationValue);
-	    } catch (InstantiationException | IllegalAccessException | IllegalArgumentException
-		    | InvocationTargetException | NoSuchMethodException | SecurityException e) {
-		// e.printStackTrace(); // Silence the exception
-	    }
-	} else if (clazz == Long.class) {
-	    try {
+	    else if (clazz == Long.class)
 		return clazz.getConstructor(long.class).newInstance((long) numberInitializationValue);
-	    } catch (InstantiationException | IllegalAccessException | IllegalArgumentException
-		    | InvocationTargetException | NoSuchMethodException | SecurityException e) {
-		// e.printStackTrace(); // Silence the exception
-	    }
-	} else if (clazz == Float.class) {
-	    try {
+	    else if (clazz == Float.class)
 		return clazz.getConstructor(long.class).newInstance((long) numberInitializationValue);
-	    } catch (InstantiationException | IllegalAccessException | IllegalArgumentException
-		    | InvocationTargetException | NoSuchMethodException | SecurityException e) {
-		// e.printStackTrace(); // Silence the exception
-	    }
-	} else if (clazz == Double.class) {
-	    try {
+	    else if (clazz == Double.class)
 		return clazz.getConstructor(double.class).newInstance((double) numberInitializationValue);
-	    } catch (InstantiationException | IllegalAccessException | IllegalArgumentException
-		    | InvocationTargetException | NoSuchMethodException | SecurityException e) {
-		// e.printStackTrace(); // Silence the exception
-	    }
+	} catch (InstantiationException | IllegalAccessException | IllegalArgumentException
+		| InvocationTargetException | NoSuchMethodException | SecurityException e) {
+	    LOG.fine(String.format("%s caught while testing primitive wrappers.", e.getClass().getName()));
+	    LOG.fine(e.getMessage());
+	    throw new RuntimeException(e);
 	}
 
 	// Test for a null constructor
@@ -99,7 +75,7 @@ public final class ClassUtil {
 	// Attempt instantiation
 	for (Constructor constructor : constructors) {
 	    try {
-		return instantiate(constructor);
+		return (T) instantiate(constructor);
 	    } catch (InstantiationException | IllegalAccessException | IllegalArgumentException
 		    | InvocationTargetException e) {
 		// Silence the error and try again with a different constructor
@@ -156,7 +132,7 @@ public final class ClassUtil {
 	    int nPrimsB = countPrimitiveParameters(b);
 	    float primsToParamsA = calculateRatio(nPrimsA, nParamsA);
 	    float primsToParamsB = calculateRatio(nPrimsB, nParamsB);
-	    
+
 	    // IF there is a significant ratio favor the ratio over of the number of parameters for comparison
 	    if (primsToParamsA >= primsToParamsRatio || primsToParamsB >= primsToParamsRatio) {
 		// Favor highest ratio
@@ -208,5 +184,17 @@ public final class ClassUtil {
 		return true;
 	}
 	return false;
+    }
+
+    /**
+     * Returns the received argument as an Object.
+     * This method does nothing but return the received argument as an Object. This is used to hide
+     * the type of primitives to allow them to be casted as generics.
+     * 
+     * @param obj
+     * @return the argument
+     */
+    private static Object toObject(Object obj) {
+	return obj;
     }
 }
