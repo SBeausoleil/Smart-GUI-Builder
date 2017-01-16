@@ -45,5 +45,7 @@ public interface FieldData<E> {
      * 
      * @return all annotations present on this element
      */
-    public Annotation[] getAnnotations();
+    default Annotation[] getAnnotations() {
+	return new Annotation[0];
+    }
 }

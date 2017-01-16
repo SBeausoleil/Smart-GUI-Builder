@@ -1,6 +1,5 @@
 package com.sb.smartgui;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 
 public class ArrayElementData<E> implements FieldData<E> {
@@ -13,7 +12,6 @@ public class ArrayElementData<E> implements FieldData<E> {
     public ArrayElementData(Object array, int index, String name) {
 	if (!array.getClass().isArray())
 	    throw new IllegalArgumentException("Received object is not an array");
-
 	testType(array);
 
 	this.array = array;
@@ -52,15 +50,6 @@ public class ArrayElementData<E> implements FieldData<E> {
     @Override
     public void setValue(E value) {
 	Array.set(array, index, value);
-    }
-
-    /**
-     * Returns null.
-     * Array elements do not hold annotations.
-     */
-    @Override
-    public Annotation[] getAnnotations() {
-	return null;
     }
 
     /**

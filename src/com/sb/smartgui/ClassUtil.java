@@ -12,7 +12,7 @@ import java.util.logging.Logger;
 public final class ClassUtil {
 
     public static volatile int numberInitializationValue = 0;
-    public static volatile char charInitializationValue = 'a';
+    public static volatile char charInitializationValue = '\u0000';
     public static volatile boolean booleanInitializationValue = false;
 
     /**
@@ -22,7 +22,7 @@ public final class ClassUtil {
     public static volatile boolean giveNullIfFailedInstantiation = false;
 
     /**
-     * The percentage of primitives within the parameters for a constructor required to pass this
+     * The percentage of primitives within the parameters of a constructor required to pass this
      * constructor in a prefered way.
      */
     public static volatile float primsToParamsRatio = 0.5f;
@@ -66,7 +66,9 @@ public final class ClassUtil {
 	// Test for a null constructor
 	try {
 	    return clazz.newInstance();
-	} catch (InstantiationException | IllegalAccessException e) {}
+	} catch (InstantiationException | IllegalAccessException e) {
+	    LOG.finest("Test for a null constructor failed.");
+	}
 
 	// Test for other constructors
 	Constructor[] constructors = clazz.getDeclaredConstructors();
@@ -111,7 +113,8 @@ public final class ClassUtil {
 
     /**
      * Orders constructors based upon their number of parameters and the prevalence of their
-     * primitives.
+     * primitives. Basically, the less there are parameters and the more of those parameters are
+     * primitives, the more a constructor will be prioritized.
      * 
      * @param constructors
      */

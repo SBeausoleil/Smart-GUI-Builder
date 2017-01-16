@@ -24,12 +24,14 @@ public class ArrayPanelBuilder implements SmartPanelBuilder {
 
     private static final long serialVersionUID = -2024928138235784224L;
 
-    // TESTME
     // IMPROVE Consider building some sort of SmartArrayPanel to allow fine control over the produced panel
     @Override
     public Container build(SmartFieldData fieldData, StringFormatter formatter, SmartPanelFactory factory,
 	    Frame frame) {
 	if (supports(fieldData.getType())) {
+	    if (factory == null)
+		throw new IllegalArgumentException(new NullPointerException("The factory parameter may not be null."));
+	    
 	    JPanel panel = new JPanel(new FlowLayout());
 	    panel.add(new JLabel(fieldData.getName()));
 
@@ -37,7 +39,7 @@ public class ArrayPanelBuilder implements SmartPanelBuilder {
 	    for (int i = 0; i < length; i++) {
 		ArrayElementData<?> data = new ArrayElementData<>(fieldData.getValue(), i, Integer.toString(i)); // IMPROVE Replace the name (i) by an actual name. Find some way to do that.
 		SmartFieldDataDecorator<?, ArrayElementData> smartData = new SmartFieldDataDecorator<>(data);
-		factory.generatePanel(frame, smartData, data.getType());
+		smartData.setPanel(factory.generatePanel(frame, smartData, data.getType()));
 		panel.add(smartData.getPanel());
 	    }
 	    return panel;

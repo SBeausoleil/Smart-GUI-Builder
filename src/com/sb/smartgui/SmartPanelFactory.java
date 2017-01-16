@@ -13,6 +13,7 @@ import java.util.Vector;
 
 import javax.swing.JButton;
 
+import com.sb.smartgui.swing.ArrayPanelBuilder;
 import com.sb.smartgui.swing.BooleanPanelBuilder;
 import com.sb.smartgui.swing.CharacterPanelBuilder;
 import com.sb.smartgui.swing.ConcreteErrorPanelBuilder;
@@ -34,6 +35,7 @@ public class SmartPanelFactory {
     public static SmartPanelBuilder defaultCharacterBuilder = new CharacterPanelBuilder();
     public static SmartPanelBuilder defaultBooleanBuilder = new BooleanPanelBuilder();
     public static SmartPanelBuilder defaultStringBuilder = new StringPanelBuilder();
+    public static SmartPanelBuilder defaultArrayBuilder = new ArrayPanelBuilder();
     public static SmartPanelBuilder defaultEnumBuilder = new EnumPanelBuilder();
     public static SmartPanelBuilder defaultObjectBuilder = new ObjectPanelBuilder();
     public static ErrorPanelBuilder defaultErrorBuilder = new ConcreteErrorPanelBuilder();
@@ -79,6 +81,7 @@ public class SmartPanelFactory {
     protected SmartPanelBuilder characterBuilder;
     protected SmartPanelBuilder booleanBuilder;
     protected SmartPanelBuilder stringBuilder;
+    protected SmartPanelBuilder arrayBuilder;
     protected SmartPanelBuilder enumBuilder;
 
     /**
@@ -130,6 +133,7 @@ public class SmartPanelFactory {
 	this.characterBuilder = defaultCharacterBuilder;
 	this.booleanBuilder = defaultBooleanBuilder;
 	this.stringBuilder = defaultStringBuilder;
+	this.arrayBuilder = defaultArrayBuilder;
 	this.enumBuilder = defaultEnumBuilder;
 
 	this.objectBuilder = defaultObjectBuilder;
@@ -144,6 +148,7 @@ public class SmartPanelFactory {
 	builders.add(characterBuilder);
 	builders.add(booleanBuilder);
 	builders.add(stringBuilder);
+	builders.add(arrayBuilder);
 	builders.add(enumBuilder);
     }
 
@@ -280,7 +285,7 @@ public class SmartPanelFactory {
      * <p>
      * Checks the following SmartPanelBuilders in the order of the this#builders vector.
      * The first builder found to support the type of the specified fieldData is used.
-     * In the class' default configuration, errorPanel will always catch everything if it is
+     * In the class' default configuration, errorPanelBuilder will always catch everything if it is
      * reached.
      * 
      * @param frame
@@ -291,7 +296,7 @@ public class SmartPanelFactory {
     public Container generatePanel(Frame frame, SmartFieldData fieldData, Class type) {
 	Container fieldPanel = null;
 	for (SmartPanelBuilder builder : builders) {
-	    if (builder.supports(type)) {
+	    if (builder != null && builder.supports(type)) {
 		fieldPanel = builder.build(fieldData, formatter, this, frame);
 		break;
 	    }
