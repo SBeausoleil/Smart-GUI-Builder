@@ -6,9 +6,6 @@ import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-// FIXME causes StackOverFlowException when given a LinkedList
-// FIXME_ADDENDUM: probably also to anything that have looped constructor type references
-// FIXME_SOLUTION: When a constructor has a type parameter loop, give NULL to these parameters
 public final class ClassUtil {
 
     public static volatile int numberInitializationValue = 0;
@@ -31,6 +28,9 @@ public final class ClassUtil {
 
     private ClassUtil() {}
 
+    // FIXME causes StackOverFlowException when given a LinkedList
+    // FIXME_ADDENDUM: probably also to anything that have looped constructor type references
+    // FIXME_SOLUTION: When a constructor has a type parameter loop, give NULL to these parameters
     public static <T> T instantiate(Class<T> clazz) {
 	LOG.fine(clazz.getName());
 
@@ -175,20 +175,39 @@ public final class ClassUtil {
 		|| clazz == Boolean.class;
     }
 
-    public static boolean instanceOf(Class<?> type, Class<?> clazz) {
+    /**
+     * Checks if a given class is an instance or a subclass of given one.
+     * 
+     * @param type
+     *            the class to check as a subclass
+     * @param superClass
+     *            the class to check as the superclass
+     * @return true if the given type is an instance or a subclass of the given superclass
+     */
+    public static boolean instanceOf(Class<?> type, Class<?> superClass) {	
 	while (type != null) {
-	    // Start by checking interfaces
+	    if (type == superClass)
+		return true;
+	    // Check interfaces
 	    for (Class implementedInterface : type.getInterfaces())
-		if (implementedInterface == clazz)
+		if (implementedInterface == superClass)
 		    return true;
 	    // Assign the superclass to the type variable
 	    type = type.getSuperclass();
-	    if (type == clazz)
-		return true;
 	}
 	return false;
     }
 
+    /**
+     * Checks if a given object is an instance or a subbclass of the given class.
+     * @param obj
+     * @param superClass
+     * @return true if the given object is an instance or a subclass of the given superclass
+     */
+    public static boolean instanceOf(Object obj, Class<?> superClass) {
+	return instanceOf(obj.getClass(), superClass);
+    }
+    
     /**
      * Returns the received argument as an Object.
      * This method does nothing but return the received argument as an Object. This is used to hide

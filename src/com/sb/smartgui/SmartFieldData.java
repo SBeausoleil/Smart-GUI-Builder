@@ -3,7 +3,7 @@ package com.sb.smartgui;
 import java.awt.Container;
 
 /**
- * An extension to IFieldData to extend it's capabilities to be used for complex GUI objects within
+ * An extension to # to extend it's capabilities to be used for complex GUI objects within
  * the SmartGUI framework. SmartFieldData objects should not be shared between multiple GUI panels,
  * usage of a SmartFieldData across multiple panels is discouraged. Instead, you should create a new
  * SmartFieldData using the FieldData level of acces used by this interface.

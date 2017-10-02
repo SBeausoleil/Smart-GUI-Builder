@@ -227,7 +227,7 @@ public class SmartPanelFactory {
     }
 
     /**
-     * Generates a SmartObjectPanel using the factorie's builders.
+     * Generates a SmartObjectPanel using the factory's builders.
      * It is recommended to not call this method directly and instead to pass via
      * 
      * @param target
